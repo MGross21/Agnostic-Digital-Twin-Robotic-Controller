@@ -1,0 +1,4 @@
+__pycache__/
+testing/
+*2*.py
+*.urdf

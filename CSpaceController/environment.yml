@@ -1,0 +1,16 @@
+name: pybullet
+channels:
+  - conda-forge  # Preferred channel for compatibility
+  - defaults  # Default channel for basic packages
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - matplotlib
+  - pip  # Ensures pip is available for packages not on Conda
+  - pip:
+      - frozenlist # helper lib
+      - multidict # helper lib
+      - tensorflow
+      - gym
+      - pybullet
