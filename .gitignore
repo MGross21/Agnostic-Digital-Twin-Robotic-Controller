@@ -1,0 +1,17 @@
+__pycache__/
+testing/
+
+# Script Generated Files
+*.urdf
+
+# Testing
+*2*.py
+*test*
+
+# Install Artifacts
+condaenv.*
+
+# Other
+*.log
+*.stl
+*.dae
