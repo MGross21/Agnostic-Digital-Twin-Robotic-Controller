@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Ensure the script is running from the correct directory
+# SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# cd "$SCRIPT_DIR"
+
 # 1. Check if Anaconda or Miniconda is installed
 if command -v conda &> /dev/null
 then
@@ -25,8 +29,8 @@ ENV_NAME=$(grep "name:" environment.yml | awk '{print $2}')
 echo "Activating Conda environment: $ENV_NAME"
 conda activate $ENV_NAME
 
-# 5. Run the Python script (replace with your desired entry point)
-SCRIPT="main.py"  # Change this to the script you want to run
+# 5. Run the Python script
+SCRIPT="main.py"
 if [ -f "$SCRIPT" ]; then
     echo "Running the script: $SCRIPT..."
     python "$SCRIPT"
