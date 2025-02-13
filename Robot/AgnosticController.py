@@ -113,21 +113,13 @@ class RobotController(ABC):
     async def custom_command(self, command):
         return await self.send_command(command)
 
-class MyCobot(RobotController):
+class ElephantRobotics(RobotController):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
         self.isConnected = False
 
     async def connect(self):
         await super().connect() # Socket Connection
-        # power_on_response = await self.send_command("power_on()")
-        # logger.info(f"Power on response: {power_on_response}")
-        # print(type(power_on_response))
-        # assert power_on_response == {"power_on": ["ok"]} # Power on the robot
-        # state_on_response = await self.send_command("state_on()")
-        # logger.info(f"State on response: {state_on_response}")
-        # assert state_on_response == {"state_on": ["ok"]} # enable the system
-        # self.isConnected = True
 
         assert await self.send_command("power_on()") == "power_on:[ok]" # Power on the robot
         assert await self.send_command("state_on()") == "state_on:[ok]" # enable the system
@@ -199,24 +191,6 @@ class MyCobot(RobotController):
             if await self.send_command("wait_command_done()", timeout=60) == "wait_command_done:0":
                 break
             await asyncio.sleep(0.25)
-            # suffix = "check_running"
-            # response = await self.send_command(f"{suffix}()")
-            # if response == f"{suffix}:1":  # Check if the robot is in position
-            #     await asyncio.sleep(0.25)  # Wait for 0.5 seconds before checking again
-            # elif response == f"{suffix}:0":
-            #     break
-            # else:
-            #     raise SystemError(response)
-            
-            # suffix = "check_status"
-            # response = await self.send_command(f"{suffix}()")
-            # if response == f"{suffix}:1":  # Check if the robot is in position
-            #     await asyncio.sleep(0.25)  # Wait for 0.5 seconds before checking again
-            # elif response == f"{suffix}:0":
-            #     break
-            # else:
-            #     raise SystemError(response)
-
 
     async def get_joint_positions(self):
         response = await self.send_command("get_angles()")
@@ -260,7 +234,7 @@ class MyCobot(RobotController):
         else:
             raise ValueError(f"Unknown robot state: {status}")
 
-class UR(RobotController):
+class UniversalRobotics(RobotController):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
 
@@ -269,16 +243,24 @@ class UR(RobotController):
 
     async def move_joints(self, joint_positions, *args, **kwargs)->str:
         """
-        MoveJ: Move the robot to the specified joint positions.
-        
-        Parameters:
-        ---
-        Joint Positions: Rad
-        v: velocity (Rad/s)
-        a: acceleration (rad/s^2)
-        t: The time (seconds) to make move is not specified. If it were specified the command would ignore the a and v values.
-        r: Blend radius (m)
-        DOF: degrees of freedom (default: 6)
+        MoveJ
+        --------
+        Move the robot to the specified joint positions.
+
+        Parameters
+        ----------
+        joint_positions : list of float
+            Joint positions in radians [j1, j2, j3, j4, j5, j6].
+        speed : float, optional
+            Speed of the movement in rad/s (default: 0.1).
+        acceleration : float, optional
+            Acceleration of the movement in rad/s^2 (default: 0.0).
+        time : float, optional
+            The time in seconds to make the move. If specified, the command will ignore the speed and acceleration values (default: 0.0).
+        r : float, optional
+            Blend radius in meters (default: 0.0).
+        DOF : int, optional
+            Degrees of freedom (default: 6).
         """
         if len(joint_positions) != kwargs.get("DOF", 6):
             raise ValueError("Joint positions must have 6 elements")
@@ -366,31 +348,22 @@ class Fanuc(RobotController):
         return await self.send_command({"type": "get_state"})
 
 class AgnosticController:
-    controllers = {
-        "mycobot": MyCobot,
-        "ur": UR,
-        # "fanuc": Fanuc
-    }
+    controllers = {}
+    for manufacturer in RobotController.__subclasses__():
+        controllers[manufacturer.__name__.lower()] = manufacturer
 
     def __init__(self, manufacturer, ip, port):
-        manufacturer = manufacturer.strip().lower()
-        if manufacturer not in self.controllers:
-            raise ValueError(f"Unsupported manufacturer: {manufacturer}")
-        self.controller = self.controllers[manufacturer](ip, port)
+        if isinstance(manufacturer, str):
+            manufacturer = manufacturer.strip().lower()
+            if manufacturer not in self.controllers:
+                raise ValueError(f"Unsupported manufacturer: {manufacturer}")
+            self.controller = self.controllers[manufacturer](ip, port)
+        
+        elif issubclass(manufacturer, RobotController):
+            self.controller = manufacturer(ip, port)
 
-    # @classmethod
-    # async def connect_multiple(cls, configs):
-    #     controllers = []
-    #     for config in configs:
-    #         try:
-    #             manufacturer, ip, port = config["manufacturer"], config["ip"], config["port"]
-    #             controller = cls(manufacturer, ip, port)
-    #             await controller.controller.connect()
-    #             controllers.append(controller.controller)
-    #             logger.info(f"Connected to {manufacturer} at {ip}:{port}")
-    #         except Exception as e:
-    #             logger.error(f"Failed to connect to {manufacturer} at {ip}:{port}: {e}")
-    #     return controllers
+        else:
+            raise ValueError(f"Invalid manufacturer type. Supported types: str, RobotController subclasses ({', '.join(self.controllers.keys())})")
 
     async def __aenter__(self):
         await self.controller.connect()
@@ -401,17 +374,15 @@ class AgnosticController:
 
 
 async def main():
-    async with MyCobot("192.168.1.159", 5001) as pro600:
+    async with AgnosticController(ElephantRobotics,"192.168.1.159", 5001) as pro600:
         # await pro600.move_cartesian([0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         # await pro600.sleep(2)
         # await pro600.move_joints([1, 0, 0, 0, 0, 0], 0.5)
         # cart_pos = np.array(await pro600.get_cartesian_position())
         # move_up = np.array([25,25,25,0,np.pi/4,0])
-        await pro600.move_cartesian(    [-276.869283,165.838322,350,
-                                        -90.584594,-19.05921816339745,-2.07884],
-                                        speed=400)
+        await pro600.move_cartesian([-276,165,350,-9,-19,-2], speed=400)
+        await pro600.sleep(2)
         await pro600.get_cartesian_position()
-        # await pro600.sleep(2)
 
 
 if __name__ == "__main__":
