@@ -2,7 +2,7 @@ __pycache__/
 testing/
 
 # Script Generated Files
-*.urdf
+# *.urdf
 
 # Testing
 *2*.py
@@ -10,6 +10,9 @@ testing/
 
 # Install Artifacts
 condaenv.*
+
+# Local IDE Settings
+.vscode/
 
 # Other
 *.log
