@@ -1,5 +1,5 @@
 import numpy as np
-from MatrixMath import Transforms
+from Utils import Transforms
 
 class ConfigurationSpace:
     """
