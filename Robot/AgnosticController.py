@@ -4,70 +4,84 @@ import json
 import logging
 from abc import ABC, abstractmethod
 import math
+import numpy as np
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class RobotController(ABC):
+    async def __aenter__(self):
+        await self.connect()
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.disconnect()
+
+
+    def __format__(self, format_spec):
+        if format_spec == "f":
+            return f"{self.__class__.__name__}({self.ip}:{self.port})"
+
     def __init__(self, ip, port):
         self.ip, self.port, self.socket = ip, port, None
+        self.isConnected = False
 
     async def connect(self):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             await asyncio.get_event_loop().sock_connect(self.socket, (self.ip, self.port))
-            logger.info(f"Connected to {self.ip}:{self.port}")
+            logger.info(f"Connected to {self:f}")
         except Exception as e:
             logger.error(f"Connection failed: {e}")
-            raise
+            raise ConnectionError(f"Failed to connect to {self:f}")
+        self.isConnected = True
 
     async def disconnect(self):
         if self.socket:
             self.socket.close()
             self.socket = None
             logger.info("Disconnected from robot")
+        self.isConnected = False
 
     async def send_command(self, command, timeout=5.0):
         if not self.socket:
-            raise ConnectionError("Not connected to the robot")
+            raise ConnectionError(f"Not connected to {self:f}")
         
         try:
-            match command:
-                case dict():
-                    command = json.dumps(command).encode('utf-8')
-                    response_format = 'dict'
-                case str():
-                    command = command.encode('utf-8')
-                    response_format = 'str'
-                case bytes():
-                    response_format = 'bytes'
-                case _:
-                    raise TypeError("Unsupported command type")
+            if isinstance(command, dict):
+                command = json.dumps(command).encode('utf-8')
+                response_format = 'dict'
+            elif isinstance(command, str):
+                command = command.encode('utf-8')
+                response_format = 'str'
+            elif isinstance(command, bytes):
+                response_format = 'bytes'
+            else:
+                raise TypeError("Unsupported command type")
             
-            logger.info(f"Sending command: {command}")
+            logger.info(f"Sending command to {self:f}: \t{command}")
             await asyncio.wait_for(self._send(command), timeout=timeout)
             response = await asyncio.wait_for(self._receive(), timeout=timeout)
             
-            match response_format:
-                case 'dict':
-                    decoded_response = json.loads(response.decode('utf-8'))
-                case 'str':
-                    decoded_response = response.decode('utf-8')
-                case 'bytes':
-                    decoded_response = response
-                case _:
-                    raise ValueError("Unsupported response format")
+            if response_format == 'dict':
+                decoded_response = json.loads(response.decode('utf-8'))
+            elif response_format == 'str':
+                decoded_response = response.decode('utf-8')
+            elif response_format == 'bytes':
+                decoded_response = response
+            else:
+                raise ValueError("Unsupported response format")
             
-            logger.info(f"Received response: {decoded_response}")
+            logger.info(f"Received response from {self:f}: \t{decoded_response}")
             return decoded_response
     
         except asyncio.TimeoutError:
             logger.error("Command timed out")
-            raise
+            raise TimeoutError("Command timed out")
         except Exception as e:
             logger.error(f"Error sending command: {e}")
-            raise
+            raise ConnectionError("Failed to send command to the robot")
 
     async def _send(self, data):
         await asyncio.get_event_loop().sock_sendall(self.socket, data)
@@ -100,30 +114,48 @@ class RobotController(ABC):
         return await self.send_command(command)
 
 class MyCobot(RobotController):
+    def __init__(self, ip:str, port:int):
+        super().__init__(ip, port)
+        self.isConnected = False
+
     async def connect(self):
         await super().connect() # Socket Connection
-        assert await self.send_command("power_on()") == {"power_on": ["ok"]} # Power on the robot
-        assert await self.send_command("state_on()") == {"state_on": ["ok"]} # enable the system
-        return True
+        # power_on_response = await self.send_command("power_on()")
+        # logger.info(f"Power on response: {power_on_response}")
+        # print(type(power_on_response))
+        # assert power_on_response == {"power_on": ["ok"]} # Power on the robot
+        # state_on_response = await self.send_command("state_on()")
+        # logger.info(f"State on response: {state_on_response}")
+        # assert state_on_response == {"state_on": ["ok"]} # enable the system
+        # self.isConnected = True
+
+        assert await self.send_command("power_on()") == "power_on:[ok]" # Power on the robot
+        assert await self.send_command("state_on()") == "state_on:[ok]" # enable the system
+        self.isConnected = True
     
     async def disconnect(self):
         await self.stop_motion() # Stop any ongoing motion
-        assert await self.send_command("state_off()") == {"state_off": ["ok"]} # Shut down the system, but the robot is still powered on
-        assert await self.send_command("power_off()") == {"power_off": ["ok"]} # Power off the robot
+        # assert await self.send_command("state_off()") == "state_off:[ok]" # Shut down the system, but the robot is still powered on
+        # assert await self.send_command("power_off()") == "power_off:[ok]" # Power off the robot
         await super().disconnect() # Socket disconnection
+        self.isConnected = False
     
     async def sleep(self, seconds):
         await self.send_command(f"wait({seconds})")
+        asyncio.sleep(seconds)
     
     async def move_joints(self, joint_positions, *args, **kwargs):
         """
         Move the robot to the specified joint positions.
         
-        Parameters:
-        ---
-        joint_positions: [j1, j2, j3, j4, j5, j6] in degrees
-        speed: 0 ~ 2000 (default: 200)
-        DOF: degrees of freedom (default: 6)
+        Parameters
+        ----------
+        joint_positions : list of float
+            Joint positions in degrees [j1, j2, j3, j4, j5, j6].
+        speed : int, optional
+            Speed of the movement, range 0 ~ 2000 (default: 200).
+        DOF : int, optional
+            Degrees of freedom (default: 6).
         """
         
         if len(joint_positions) != kwargs.get("DOF", 6):
@@ -145,14 +177,12 @@ class MyCobot(RobotController):
         if not (0 <= speed <= 2000):
             raise ValueError("Speed out of range: 0 ~ 2000")
         
-        command = f"set_angles({','.join(map(str, joint_positions))},{speed})"
-        response =  await self.send_command(command)
-        
-        if response == {"set_angles":"error_message"}:
-            raise ValueError("Invalid joint positions or speed")
-        else:
-            assert response == {"set_angles":["ok"]}
+        command = "set_angles"
+        response =  await self.send_command(f"{command}({','.join(map(str, joint_positions))},{speed})")
 
+        if response != f"{command}:[ok]":
+            logger.error(f"Failed to move joints: {response}")
+            raise ValueError("Invalid joint positions or speed")
 
     async def move_cartesian(self, robot_pose, *args, **kwargs):
         speed = kwargs.get("speed", 200)
@@ -163,34 +193,76 @@ class MyCobot(RobotController):
         
         command = f"set_coords({','.join(map(str, robot_pose))},{speed})"
         
-        assert await self.send_command(command) == {"set_coords":["ok"]}
+        assert await self.send_command(command) == "set_coords:[ok]"
+        
+        while True:
+            if await self.send_command("wait_command_done()", timeout=60) == "wait_command_done:0":
+                break
+            await asyncio.sleep(0.25)
+            # suffix = "check_running"
+            # response = await self.send_command(f"{suffix}()")
+            # if response == f"{suffix}:1":  # Check if the robot is in position
+            #     await asyncio.sleep(0.25)  # Wait for 0.5 seconds before checking again
+            # elif response == f"{suffix}:0":
+            #     break
+            # else:
+            #     raise SystemError(response)
+            
+            # suffix = "check_status"
+            # response = await self.send_command(f"{suffix}()")
+            # if response == f"{suffix}:1":  # Check if the robot is in position
+            #     await asyncio.sleep(0.25)  # Wait for 0.5 seconds before checking again
+            # elif response == f"{suffix}:0":
+            #     break
+            # else:
+            #     raise SystemError(response)
+
 
     async def get_joint_positions(self):
         response = await self.send_command("get_angles()")
-        if response == [-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]:
+        if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid joint positions response from robot")
         return response
 
     async def get_cartesian_position(self):
         response = await self.send_command("get_coords()") # [x, y, z, rx, ry, rz]
-        if response == [-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]:
+        if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid cartesian position response from robot")
-        return response
+        cartesian_position = list(map(float, response[response.index("[")+1:response.index("]")].split(","))) # From string list to float list
+        return np.array(cartesian_position)
 
     async def stop_motion(self):
         command = "task_stop"
         response = await self.send_command(f"{command}()")
-        if response != {command: ["ok"]}:
-            raise SystemError(response.get(command, "Unknown error"))
+
+        if not response.startswith(f"{command}:"):
+            raise SystemError(f"Unexpected response: {response}")
+
+        result = response.split(":", 1)[1]
+
+        if result != "[ok]":
+            raise SystemError(result)
+        return True
 
     async def get_robot_state(self):
         command = "check_running"
         response = await self.send_command(f"{command}()")
-        if response != {command:["ok"]}:
-            raise SystemError(response.get(command, "Unknown error"))
-        return True if response == {"check_running":1} else False
+
+        if not response.startswith(f"{command}:"):
+            raise SystemError(f"Unexpected response format: {response}")
+
+        status = response.partition(":")[2]  # Get everything after the colon
+
+        if status == "1":
+            return True
+        elif status == "0":
+            return False
+        else:
+            raise ValueError(f"Unknown robot state: {status}")
 
 class UR(RobotController):
+    def __init__(self, ip:str, port:int):
+        super().__init__(ip, port)
 
     async def sleep(self, seconds):
         await self.send_command(f"sleep({seconds})")
@@ -272,6 +344,9 @@ class UR(RobotController):
 
 # Non-Operational (1/31/2025)
 class Fanuc(RobotController):
+    def __init__(self, ip:str, port:int):
+        super().__init__(ip, port)
+
     async def move_joints(self, joint_positions, speed=1.0):
         return await self.send_command({"type": "move_joints", "positions": joint_positions, "speed": speed})
 
@@ -323,3 +398,21 @@ class AgnosticController:
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.controller.disconnect()
+
+
+async def main():
+    async with MyCobot("192.168.1.159", 5001) as pro600:
+        # await pro600.move_cartesian([0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        # await pro600.sleep(2)
+        # await pro600.move_joints([1, 0, 0, 0, 0, 0], 0.5)
+        # cart_pos = np.array(await pro600.get_cartesian_position())
+        # move_up = np.array([25,25,25,0,np.pi/4,0])
+        await pro600.move_cartesian(    [-276.869283,165.838322,350,
+                                        -90.584594,-19.05921816339745,-2.07884],
+                                        speed=400)
+        await pro600.get_cartesian_position()
+        # await pro600.sleep(2)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

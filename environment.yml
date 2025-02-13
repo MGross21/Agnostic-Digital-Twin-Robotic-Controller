@@ -14,3 +14,4 @@ dependencies:
       - tensorflow
       - gym
       - pybullet
+      - scipy
