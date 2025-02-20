@@ -8,14 +8,14 @@
     <visual>
       <geometry>
 	     <!--- 0.0 0 -0.04  1.5708 3.14159-->
-       <mesh filename="meshes/base.dae"/>
+       <mesh filename="meshes/base.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 0 0"/>
     </visual>
     <collision>
     <geometry>
 	     <!--- 0.0 0 -0.04  1.5708 3.14159-->
-       <mesh filename="meshes/base.dae"/>
+       <mesh filename="meshes/base.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 0 0"/>
     </collision>
@@ -24,13 +24,13 @@
   <link name="link1">
     <visual>
       <geometry>
-       <mesh filename="meshes/link1.dae"/>
+       <mesh filename="meshes/link1.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = "0 0 3.1415926"/>
     </visual>
      <collision>
       <geometry>
-       <mesh filename="meshes/link1.dae"/>
+       <mesh filename="meshes/link1.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 0 3.1415926"/>
     </collision>
@@ -40,13 +40,13 @@
   <link name="link2">
     <visual>
       <geometry>
-       <mesh filename="meshes/link2.dae"/>
+       <mesh filename="meshes/link2.stl"/>
       </geometry>
     <origin xyz = "0 0 -0.080 " rpy = " 3.1415926 0 3.1415926"/>
     </visual>
      <collision>
      <geometry>
-       <mesh filename="meshes/link2.dae"/>
+       <mesh filename="meshes/link2.stl"/>
       </geometry>
     <origin xyz = "0 0 -0.080 " rpy = " 3.1415926 0 3.1415926"/>
     </collision>
@@ -57,14 +57,14 @@
     <visual>
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link3.dae"/>
+       <mesh filename="meshes/link3.stl"/>
       </geometry>
     <origin xyz = "0 0 -0.0855 " rpy = " 3.1415926 0 3.1415926"/>
     </visual>
      <collision>
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link3.dae"/>
+       <mesh filename="meshes/link3.stl"/>
       </geometry>
     <origin xyz = "0 0 -0.0855 " rpy = "3.1415926 0 3.1415926"/>
     </collision>
@@ -76,14 +76,14 @@
     <visual>
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link4.dae"/>
+       <mesh filename="meshes/link4.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 3.1415926 0"/>
     </visual>
      <collision>
      <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link4.dae"/>
+       <mesh filename="meshes/link4.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 3.1415926 0"/>
     </collision>
@@ -94,14 +94,14 @@
     <visual>
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link5.dae"/>
+       <mesh filename="meshes/link5.stl"/>
       </geometry>
     <origin xyz = "0 0  0 " rpy = " 0  0 1.5707"/>
     </visual>
      <collision>
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link5.dae"/>
+       <mesh filename="meshes/link5.stl"/>
       </geometry>
     <origin xyz = "0 0  0 " rpy = " 0  0 1.5707"/>
     </collision>
@@ -111,7 +111,7 @@
     <visual>
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link6.dae"/>
+       <mesh filename="meshes/link6.stl"/>
       </geometry>
       <material name = "grey">
         <color rgba = "0.5 0.5 0.5 1"/>
@@ -121,7 +121,7 @@
      <collision>
      <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link6.dae"/>
+       <mesh filename="meshes/link6.stl"/>
       </geometry>
       <material name = "grey">
         <color rgba = "0.5 0.5 0.5 1"/>
