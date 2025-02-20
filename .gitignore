@@ -1,12 +1,19 @@
+# Cache
 __pycache__/
-testing/
 
 # Script Generated Files
 # *.urdf
+*timings*
+
+# Datasets / Models
+*.pt
+datasets/
+runs/
 
 # Testing
 *2*.py
 *test*
+# testing/
 
 # Install Artifacts
 condaenv.*
