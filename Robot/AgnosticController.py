@@ -450,6 +450,10 @@ class AgnosticController:
 
         else:
             raise ValueError(f"Invalid manufacturer type. Supported types: str, RobotController subclasses ({', '.join(self.controllers.keys())})")
+        
+    @staticmethod
+    def supported_manufacturers():
+        return list(AgnosticController.controllers.keys())
 
     async def __aenter__(self):
         await self.controller.connect()
