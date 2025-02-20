@@ -49,6 +49,8 @@ class RobotController(ABC):
             raise ConnectionError(f"Not connected to {self:f}")
         
         try:
+            logger.info(f"Sending command to {self:f}: \t{command}")
+            
             if isinstance(command, dict):
                 command = json.dumps(command).encode('utf-8')
                 response_format = 'dict'
@@ -60,7 +62,6 @@ class RobotController(ABC):
             else:
                 raise TypeError("Unsupported command type")
             
-            logger.info(f"Sending command to {self:f}: \t{command}")
             await asyncio.wait_for(self._send(command), timeout=timeout)
             response = await asyncio.wait_for(self._receive(), timeout=timeout)
             
@@ -93,6 +94,9 @@ class RobotController(ABC):
     async def sleep(self, seconds): pass
 
     @abstractmethod
+    async def home(self): pass
+
+    @abstractmethod
     async def move_joints(self, joint_positions,*args, **kwargs): pass
 
     @abstractmethod
@@ -112,8 +116,11 @@ class RobotController(ABC):
 
     async def custom_command(self, command):
         return await self.send_command(command)
+    
 
 class ElephantRobotics(RobotController):
+    HOME_POSITION = [-180,-90, 90,-90,-90,0]
+
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
         self.isConnected = False
@@ -131,10 +138,19 @@ class ElephantRobotics(RobotController):
         # assert await self.send_command("power_off()") == "power_off:[ok]" # Power off the robot
         await super().disconnect() # Socket disconnection
         self.isConnected = False
+
+    async def _waitforfinish(self):
+        while True:
+            if await self.send_command("wait_command_done()", timeout=60) == "wait_command_done:0":
+                break
+            await asyncio.sleep(0.25)
     
     async def sleep(self, seconds):
         await self.send_command(f"wait({seconds})")
         asyncio.sleep(seconds)
+
+    async def home(self):
+        await self.move_joints(ElephantRobotics.HOME_POSITION, speed=300)
     
     async def move_joints(self, joint_positions, *args, **kwargs):
         """
@@ -149,6 +165,9 @@ class ElephantRobotics(RobotController):
         DOF : int, optional
             Degrees of freedom (default: 6).
         """
+
+        if type(joint_positions) != np.array:
+            joint_positions = np.array(joint_positions)
         
         if len(joint_positions) != kwargs.get("DOF", 6):
             raise ValueError("Joint positions must have 6 elements")
@@ -171,12 +190,16 @@ class ElephantRobotics(RobotController):
         
         command = "set_angles"
         response =  await self.send_command(f"{command}({','.join(map(str, joint_positions))},{speed})")
+        assert response == f"{command}:[ok]", f"Failed to move joints: {response}"
 
-        if response != f"{command}:[ok]":
-            logger.error(f"Failed to move joints: {response}")
-            raise ValueError("Invalid joint positions or speed")
 
-    async def move_cartesian(self, robot_pose, *args, **kwargs):
+        while await self.get_joint_positions() != joint_positions:
+            await asyncio.sleep(0.25)
+
+    async def move_cartesian(self, robot_pose, *args, **kwargs)->None:
+        if type(robot_pose) != np.array:
+            robot_pose = np.array(robot_pose)
+
         speed = kwargs.get("speed", 200)
         if not (0 <= speed <= 2000):
             raise ValueError("Speed out of range: 0 ~ 2000")
@@ -186,24 +209,23 @@ class ElephantRobotics(RobotController):
         command = f"set_coords({','.join(map(str, robot_pose))},{speed})"
         
         assert await self.send_command(command) == "set_coords:[ok]"
-        
-        while True:
-            if await self.send_command("wait_command_done()", timeout=60) == "wait_command_done:0":
-                break
+
+        while await self.get_cartesian_position() != robot_pose:
             await asyncio.sleep(0.25)
 
     async def get_joint_positions(self):
         response = await self.send_command("get_angles()")
         if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid joint positions response from robot")
-        return response
+        joint_positions = list(map(float, response[response.index("[")+1:response.index("]")].split(","))) # From string list to float list
+        return np.array(joint_positions).round(3)
 
     async def get_cartesian_position(self):
         response = await self.send_command("get_coords()") # [x, y, z, rx, ry, rz]
         if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid cartesian position response from robot")
         cartesian_position = list(map(float, response[response.index("[")+1:response.index("]")].split(","))) # From string list to float list
-        return np.array(cartesian_position)
+        return np.array(cartesian_position).round(3)
 
     async def stop_motion(self):
         command = "task_stop"
@@ -237,6 +259,7 @@ class ElephantRobotics(RobotController):
 class UniversalRobotics(RobotController):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
+
 
     async def sleep(self, seconds):
         await self.send_command(f"sleep({seconds})")
@@ -443,8 +466,10 @@ async def main():
         # await pro600.move_joints([1, 0, 0, 0, 0, 0], 0.5)
         # cart_pos = np.array(await pro600.get_cartesian_position())
         # move_up = np.array([25,25,25,0,np.pi/4,0])
-        await robot.move_cartesian([-276,165,350,-9,-19,-2], speed=400)
-        await robot.sleep(2)
+        # await robot.move_cartesian([-276,165,350,-9,-19,-2], speed=400)
+        await robot.move_cartesian([150,-350,400,-180,0,0], speed=300)
+        await robot.home()
+        # await robot.sleep(2)
         await robot.get_cartesian_position()
 
 
