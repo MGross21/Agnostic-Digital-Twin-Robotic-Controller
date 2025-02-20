@@ -1,1 +1,2 @@
-from Utils.Math import Transform, Conversion
+from .Math import Transform, Conversion
+from .BezierSpline import BezierSpline
