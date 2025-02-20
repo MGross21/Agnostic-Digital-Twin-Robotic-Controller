@@ -324,6 +324,69 @@ class UniversalRobotics(RobotController):
 
     async def get_robot_state(self): pass
 
+
+class Dobot(RobotController):
+    def __init__(self, ip:str, port:int):
+        super().__init__(ip, port)
+
+    async def sleep(self, seconds):
+        await self.send_command(f"sleep({seconds})")
+
+    async def move_joints(self, joint_positions, *args, **kwargs)->str:
+        "MovJ"
+
+        if len(joint_positions) != kwargs.get("DOF", 4):
+            raise ValueError("Joint positions must have 4 elements")
+        
+        joint_ranges = [
+            (-135.00, 135.00),
+            (-5.00, 80.00),
+            (-10.00, 85.00),
+            (-145.00, 145.00)
+        ]
+        for i, (low, high) in enumerate(joint_ranges):
+            if not (low <= joint_positions[i] <= high):
+                raise ValueError(f"Joint {i+1} angle out of range: {low} ~ {high}")
+            
+        command = "MOVJ({})".format(','.join(map(str, joint_positions)))
+        return await self.send_command(command)
+
+    async def move_cartesian(self, robot_pose, *args, **kwargs)->str:
+        "MOVEL"
+
+        if len(robot_pose) == 3:
+            robot_pose.append(0)
+
+        # Now check again if the robot pose has 4 elements
+        if len(robot_pose) != 4:    
+            raise ValueError("Robot pose must have 3 ([x, y, z]) or 4 elements: [x, y, z, rz]")
+        
+        command = "MOVEL({})".format(','.join(map(str, robot_pose)))
+        return await self.send_command(command)
+
+    async def get_joint_positions(self): pass
+
+    async def get_cartesian_position(self): pass
+
+    async def stop_motion(self): pass
+
+    async def get_robot_state(self): pass
+
+    async def move_arc(self, command):
+        """The trajectory of ARC mode is an arc, which is determined by three points (the current point, any point and the end point on the arc)"""
+        if len(command) != 3:
+            raise ValueError("Invalid ARC command. Must have 3 points")
+        
+        self.send_command(f"ARC({','.join(map(str, command))})")
+
+    async def move_jump(self, command):
+        """If the movement of two points is required to lift upwards by amount of height, such as sucking up, grabbing, you can choose JUMP"""
+        if len(command) != 2:
+            raise ValueError("Invalid JUMP command. Must have 2 points")
+        
+        self.send_command(f"JUMP({','.join(map(str, command))})")
+
+
 # Non-Operational (1/31/2025)
 class Fanuc(RobotController):
     def __init__(self, ip:str, port:int):
@@ -374,15 +437,15 @@ class AgnosticController:
 
 
 async def main():
-    async with AgnosticController(ElephantRobotics,"192.168.1.159", 5001) as pro600:
+    async with AgnosticController(ElephantRobotics,"192.168.1.159", 5001) as robot:
         # await pro600.move_cartesian([0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         # await pro600.sleep(2)
         # await pro600.move_joints([1, 0, 0, 0, 0, 0], 0.5)
         # cart_pos = np.array(await pro600.get_cartesian_position())
         # move_up = np.array([25,25,25,0,np.pi/4,0])
-        await pro600.move_cartesian([-276,165,350,-9,-19,-2], speed=400)
-        await pro600.sleep(2)
-        await pro600.get_cartesian_position()
+        await robot.move_cartesian([-276,165,350,-9,-19,-2], speed=400)
+        await robot.sleep(2)
+        await robot.get_cartesian_position()
 
 
 if __name__ == "__main__":
