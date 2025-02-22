@@ -213,7 +213,7 @@ class ElephantRobotics(RobotController):
         assert response == f"{command}:[ok]", f"Failed to move joints: {response}"
 
 
-        while not np.allclose(await self.get_joint_positions(), joint_positions, atol=0.1):
+        while not np.allclose(await self.get_joint_positions(), joint_positions, atol=0.5):
             await asyncio.sleep(0.25)
 
     async def move_cartesian(self, robot_pose, *args, **kwargs)->None:
@@ -238,7 +238,7 @@ class ElephantRobotics(RobotController):
         if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid joint positions response from robot")
         joint_positions = list(map(float, response[response.index("[")+1:response.index("]")].split(","))) # From string list to float list
-        return np.array(joint_positions).round(2)
+        return np.array(joint_positions).round(1)
 
     async def get_cartesian_position(self):
         response = await self.send_command("get_coords()") # [x, y, z, rx, ry, rz]
@@ -292,7 +292,7 @@ class ElephantRobotics(RobotController):
             super().__init__(ip, port)
 
         async def home(self):
-            await ElephantRobotics.move_joints(ElephantRobotics.MyCobotPro600.HOME_POSITION, speed=500)
+            await ElephantRobotics.move_joints(ElephantRobotics.MyCobotPro600.HOME_POSITION, speed=750)
         
 
 
