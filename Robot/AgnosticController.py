@@ -11,7 +11,7 @@ SEND_LEVEL = logging.INFO + 1
 RECIEVE_LEVEL = logging.INFO + 2
 
 logging.addLevelName(SEND_LEVEL, "SEND")
-logging.addLevelName(RECIEVE_LEVEL, "RECIEVE")
+logging.addLevelName(RECIEVE_LEVEL, "RECV")
 
 def send(self, message, *args, **kws):
     if self.isEnabledFor(SEND_LEVEL):
@@ -517,4 +517,10 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Program terminated by user")
+    except Exception as e:
+        print(e)
+        print("An error occurred")
