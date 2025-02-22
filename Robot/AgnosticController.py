@@ -139,7 +139,7 @@ class RobotController(ABC):
     
 
 class ElephantRobotics(RobotController):
-    HOME_POSITION = [-180,-90, 90,-90,-90,0]
+    HOME_POSITION = [0,-90, 90,-90,-90,0]
 
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
@@ -170,7 +170,7 @@ class ElephantRobotics(RobotController):
         asyncio.sleep(seconds)
 
     async def home(self):
-        await self.move_joints(ElephantRobotics.HOME_POSITION, speed=300)
+        await self.move_joints(ElephantRobotics.HOME_POSITION, speed=500)
     
     async def move_joints(self, joint_positions, *args, **kwargs):
         """
@@ -213,7 +213,7 @@ class ElephantRobotics(RobotController):
         assert response == f"{command}:[ok]", f"Failed to move joints: {response}"
 
 
-        while await self.get_joint_positions() != joint_positions:
+        while not np.allclose(await self.get_joint_positions(), joint_positions, atol=0.1):
             await asyncio.sleep(0.25)
 
     async def move_cartesian(self, robot_pose, *args, **kwargs)->None:
@@ -230,7 +230,7 @@ class ElephantRobotics(RobotController):
         
         assert await self.send_command(command) == "set_coords:[ok]"
 
-        while await self.get_cartesian_position() != robot_pose:
+        while not np.allclose(await self.get_cartesian_position(), robot_pose, atol=0.1):
             await asyncio.sleep(0.25)
 
     async def get_joint_positions(self):
@@ -238,14 +238,14 @@ class ElephantRobotics(RobotController):
         if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid joint positions response from robot")
         joint_positions = list(map(float, response[response.index("[")+1:response.index("]")].split(","))) # From string list to float list
-        return np.array(joint_positions).round(3)
+        return np.array(joint_positions).round(2)
 
     async def get_cartesian_position(self):
         response = await self.send_command("get_coords()") # [x, y, z, rx, ry, rz]
         if response == "[-1.0, -2.0, -3.0, -4.0, -1.0, -1.0]":
             raise ValueError("Invalid cartesian position response from robot")
         cartesian_position = list(map(float, response[response.index("[")+1:response.index("]")].split(","))) # From string list to float list
-        return np.array(cartesian_position).round(3)
+        return np.array(cartesian_position).round(2)
 
     async def stop_motion(self):
         command = "task_stop"
@@ -275,11 +275,30 @@ class ElephantRobotics(RobotController):
             return False
         else:
             raise ValueError(f"Unknown robot state: {status}")
+    
+    class MyCobotPro600:
+        HOME_POSITION = [0,-90, 90,-90,-90,0]
+        JOINT_LIMITS =  [
+            (-180.00, 180.00),
+            (-270.00, 90.00),
+            (-150.00, 150.00),
+            (-260.00, 80.00),
+            (-168.00, 168.00),
+            (-174.00, 174.00)
+        ]
+        DOF = len(JOINT_LIMITS)
+
+        def __init__(self, ip:str, port:int):
+            super().__init__(ip, port)
+
+        async def home(self):
+            await ElephantRobotics.move_joints(ElephantRobotics.MyCobotPro600.HOME_POSITION, speed=500)
+        
+
 
 class UniversalRobotics(RobotController):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
-
 
     async def sleep(self, seconds):
         await self.send_command(f"sleep({seconds})")
@@ -461,7 +480,7 @@ class AgnosticController:
     def __init__(self, manufacturer, ip, port):
         if isinstance(manufacturer, str):
             manufacturer = manufacturer.strip().lower()
-            if manufacturer not in self.controllers:
+            if (manufacturer not in self.controllers):
                 raise ValueError(f"Unsupported manufacturer: {manufacturer}")
             self.controller = self.controllers[manufacturer](ip, port)
         
@@ -491,7 +510,7 @@ async def main():
         # cart_pos = np.array(await pro600.get_cartesian_position())
         # move_up = np.array([25,25,25,0,np.pi/4,0])
         # await robot.move_cartesian([-276,165,350,-9,-19,-2], speed=400)
-        await robot.move_cartesian([150,-350,400,-180,0,0], speed=300)
+        # await robot.move_cartesian([150,-350,400,-180,0,0], speed=300)
         await robot.home()
         # await robot.sleep(2)
         await robot.get_cartesian_position()
