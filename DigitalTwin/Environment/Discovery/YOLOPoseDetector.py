@@ -8,7 +8,7 @@ torch.cuda.empty_cache()
 YOLO_VERBOSE = False
 
 # Model Source https://docs.ultralytics.com/tasks/pose/
-class YOLOPoseDetector:
+class YOLOPoseDetector(object):
     def __init__(self, model_path='yolo11m.pt', camera_id=0, conf_threshold=0.5, show_window=True, verbose=False):
         self.model_path = model_path
         self.camera_id = camera_id

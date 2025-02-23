@@ -2,7 +2,7 @@ import time
 import json
 from Robot import URDFGenerator, ConfigurationSpace
 from pyBullet import Simulation as PyBulletSimulation
-from DigitalTwin import DigitalTwin
+from DigitalTwin.DigitalTwin import DigitalTwin
 # from Environment.Glovebox import Glovebox
 # from Robot import AgnosticController, Robot
 

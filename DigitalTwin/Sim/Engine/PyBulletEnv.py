@@ -2,7 +2,7 @@ import pybullet as p
 import pybullet_data
 from typing import List, Tuple, Optional
 
-class Simulation:
+class PyBulletEnv:
     def __init__(self, robot_urdf_path: str, dof: int = 6, use_gui: bool = True, gravity: float = -9.8):
         self.client = p.connect(p.GUI if use_gui else p.DIRECT)
         p.setGravity(0, 0, gravity)

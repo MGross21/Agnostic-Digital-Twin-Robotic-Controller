@@ -1,6 +1,5 @@
 import time
-from Robot.AgnosticController import AgnosticController
-from pyBullet.Simulation import Simulation
+from . import AgnosticController
 
 class DigitalTwin:
     def __init__(self, robot:AgnosticController=None, pb_simulation:Simulation=None):
