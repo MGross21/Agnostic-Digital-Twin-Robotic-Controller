@@ -1,8 +1,9 @@
 import time
-from . import AgnosticController
+from .Real.Controller import AgnosticController as Ctrl
+from .Sim.Engine import PyBulletEnv as Env
 
 class DigitalTwin:
-    def __init__(self, robot:AgnosticController=None, pb_simulation:Simulation=None):
+    def __init__(self, robot:Ctrl=None, pb_simulation:Env=None):
         self.robot = robot
         self.pb_simulation = pb_simulation
 
