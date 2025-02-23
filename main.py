@@ -1,10 +1,9 @@
 import time
 import json
-from Robot import URDFGenerator, ConfigurationSpace
-from pyBullet import Simulation as PyBulletSimulation
-from DigitalTwin.DigitalTwin import DigitalTwin
-# from Environment.Glovebox import Glovebox
-# from Robot import AgnosticController, Robot
+from DigitalTwin import DigitalTwin as DT
+from DigitalTwin.Sim.Model.Generation import URDFGenerator
+from DigitalTwin.Sim.Engine import PyBulletEnv as Env
+
 
 robotArchetype = "UR5"
 robot_loc = f"RobotConfigs/{robotArchetype}/{robotArchetype}"
@@ -35,7 +34,7 @@ robot.save_urdf(robot_urdf_loc)
 # Create PyBullet Simulation
 #################################
 
-pb_simulation = PyBulletSimulation("RobotConfigs/UR5/UR5.urdf", dof=6)
+pb_simulation = Env("RobotConfigs/UR5/UR5.urdf", dof=6)
 
 # Start PyBullet Simulation
 home_position = [0, -1.57, 1.57, 0, 1.57, 0]
@@ -53,7 +52,7 @@ finally:
 
 # controller = AgnosticController(robot_data["ip_address"], robot_data["port"])
 # robot_instance = Robot(config_space, controller=controller)
-digital_twin = DigitalTwin(pb_simulation=pb_simulation)
+digital_twin = DT(pb_simulation=pb_simulation)
 
 # Define Glovebox Constraints using default dimensions and safety margin
 # glovebox_constraints = Glovebox.get_constraints()
