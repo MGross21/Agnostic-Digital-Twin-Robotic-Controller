@@ -5,7 +5,12 @@ import os
 import sys
 
 torch.cuda.empty_cache()
-YOLO_VERBOSE = False
+
+# Attempt to suppress terminal output from YOLO
+try:
+    os.environ['YOLO_VERBOSE'] = 'False'
+finally:
+    YOLO_VERBOSE = False
 
 # Model Source https://docs.ultralytics.com/tasks/pose/
 class YOLOPoseDetector(object):
