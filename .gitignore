@@ -23,5 +23,5 @@ condaenv.*
 
 # Other
 *.log
-*.stl
-*.dae
+# *.stl
+# *.dae
