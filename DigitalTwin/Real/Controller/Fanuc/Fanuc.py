@@ -1,7 +1,7 @@
-from ..Core import ControllerTemplate
+from Controller import SocketControllerTemplate as SCT
 
 # Non-Operational (1/31/2025)
-class Fanuc(ControllerTemplate):
+class Fanuc(SCT):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
 

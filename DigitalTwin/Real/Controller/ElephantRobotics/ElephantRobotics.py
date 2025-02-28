@@ -1,9 +1,9 @@
-from ..Core import ControllerTemplate
+from Controller import SocketControllerTemplate as SCT
 import asyncio
 import numpy as np
 
 
-class ElephantRobotics(ControllerTemplate):
+class ElephantRobotics(SCT):
     HOME_POSITION = [0,-90, 90,-90,-90,0]
 
     def __init__(self, ip:str, port:int):

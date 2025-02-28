@@ -1,4 +1,4 @@
-from .Core import ControllerTemplate
+from .Templates import SocketControllerTemplate
 from .AgnosticController import AgnosticController
 
 from .ElephantRobotics import ElephantRobotics

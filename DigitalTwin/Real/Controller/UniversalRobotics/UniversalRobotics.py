@@ -1,7 +1,7 @@
-from ..Core import ControllerTemplate
+from Controller import SocketControllerTemplate as SCT
 import math
 
-class UniversalRobotics(ControllerTemplate):
+class UniversalRobotics(SCT):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
 

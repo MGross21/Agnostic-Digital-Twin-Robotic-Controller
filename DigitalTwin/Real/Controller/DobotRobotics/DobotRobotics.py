@@ -1,6 +1,6 @@
-from ..Core import ControllerTemplate
+from Controller import SocketControllerTemplate as SCT
 
-class DobotRobotics(ControllerTemplate):
+class DobotRobotics(SCT):
     def __init__(self, ip:str, port:int):
         super().__init__(ip, port)
 

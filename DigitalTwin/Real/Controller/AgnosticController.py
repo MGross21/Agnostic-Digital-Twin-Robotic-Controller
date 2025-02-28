@@ -1,10 +1,10 @@
-from . import ControllerTemplate, ElephantRobotics, Fanuc, UniversalRobotics, DobotRobotics, AgnosticController
+from . import SocketControllerTemplate as SCT, ElephantRobotics, Fanuc, UniversalRobotics, DobotRobotics
 
 import asyncio 
 
 class AgnosticController:
     controllers = {}
-    for manufacturer in ControllerTemplate.__subclasses__():
+    for manufacturer in SCT.__subclasses__():
         controllers[manufacturer.__name__.lower()] = manufacturer
 
     def __init__(self, manufacturer, ip, port):
@@ -14,7 +14,7 @@ class AgnosticController:
                 raise ValueError(f"Unsupported manufacturer: {manufacturer}")
             self.controller = self.controllers[manufacturer](ip, port)
         
-        elif issubclass(manufacturer, ControllerTemplate):
+        elif issubclass(manufacturer, SCT):
             self.controller = manufacturer(ip, port)
 
         else:
@@ -35,7 +35,7 @@ class AgnosticController:
 async def main():
     async with AgnosticController(ElephantRobotics,"192.168.1.159", 5001) as robot:
         await robot.home()
-        await robot.get_cartesian_position()
+        # await robot.get_cartesian_position()
 
 
 if __name__ == "__main__":
