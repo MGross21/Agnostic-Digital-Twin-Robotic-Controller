@@ -41,7 +41,7 @@ Date: `February 21, 2025`
 
 **Toothbrush?** Will have to look into other models in the future that have better common object detection.
 
-![Object Detection](Assets/Images/MarkerDetectionToothbrush.png)
+![Object Detection](../Assets/Images/MarkerDetectionToothbrush.png)
 
 ### Output
 
