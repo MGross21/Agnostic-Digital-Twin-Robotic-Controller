@@ -1,5 +1,5 @@
 import time
-from .Real.Controller import AgnosticController as Ctrl
+from .Real.agnostic_controller import AgnosticController as Ctrl
 from .Sim.Engine import PyBulletEnv as Env
 
 class DigitalTwin:

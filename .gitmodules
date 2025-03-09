@@ -1,3 +1,6 @@
-[submodule "DigitalTwin/Real/agnostic-controller"]
-	path = DigitalTwin/Real/agnostic-controller
+[submodule "DigitalTwin/Real/agnostic_controller"]
+	path = DigitalTwin/Real/agnostic_controller
 	url = https://github.com/MGross21/agnostic-controller.git
+[submodule "DigitalTwin/Sim/mujoco_toolbox"]
+	path = DigitalTwin/Sim/mujoco_toolbox
+	url = https://github.com/MGross21/mujoco-toolbox
