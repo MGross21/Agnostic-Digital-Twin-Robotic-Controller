@@ -1,0 +1,3 @@
+[submodule "DigitalTwin/Real/agnostic-controller"]
+	path = DigitalTwin/Real/agnostic-controller
+	url = https://github.com/MGross21/agnostic-controller.git

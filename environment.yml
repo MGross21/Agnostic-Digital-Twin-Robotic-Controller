@@ -9,10 +9,8 @@ dependencies:
   - matplotlib
   - pip  # Ensures pip is available for packages not on Conda
   - pip:
-      - frozenlist # helper lib
-      - multidict # helper lib
-      - tensorflow
-      - gym
+      # - tensorflow
+      # - gym
       - pybullet
       - scipy
       - ultralytics # for YOLOv11
