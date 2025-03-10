@@ -1,6 +1,7 @@
 import time
 from .Real.agnostic_controller import AgnosticController as Ctrl
 from .Sim.Engine import PyBulletEnv as Env
+from .Sim.mujoco_toolbox.mujoco_toolbox import Wrapper
 
 class DigitalTwin:
     def __init__(self, robot:Ctrl=None, pb_simulation:Env=None):
