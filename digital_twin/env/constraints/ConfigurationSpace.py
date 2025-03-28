@@ -1,5 +1,5 @@
 import numpy as np
-from Utils import Transforms
+from tools.Math import Transforms
 
 class ConfigurationSpace:
     """
