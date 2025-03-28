@@ -1,13 +1,14 @@
 from typing import List, Tuple
 
 class Glovebox:
-    DEFAULT_DIMENSIONS: Tuple[float, float, float, float, float, float] = (-0.5, 0.5, -0.2, 0.2, 0.0, 0.5)
+    DEFAULT_DIMENSIONS = (-0.5, 0.5, -0.2, 0.2, 0.0, 0.5)
     DEFAULT_SAFETY_MARGIN: float = 0.05
 
     @staticmethod
     def get_constraints(dimensions: Tuple[float, float, float, float, float, float] = None, safety_margin: float = None) -> List[float]:
         """
         Get the constraints for the glovebox environment with a safety margin.
+        
         Returns
         --------
         A list containing the constrained dimensions with the safety margin applied.

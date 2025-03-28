@@ -1,5 +1,5 @@
 import numpy as np
-from tools.Math import Transforms
+from digital_twin.tools.Math import Transform
 
 class ConfigurationSpace:
     """
@@ -13,7 +13,7 @@ class ConfigurationSpace:
     """
     def __init__(self, urdf_generator):
         self.config = urdf_generator.json_data
-        self.transforms = Transforms(self.config['robot']['dh_parameters'])
+        self.transforms = Transform(self.config['robot']['dh_parameters'])
 
     def compute_reachable_coordinates(self):
         T = self.transforms.compute_forward_kinematics()
