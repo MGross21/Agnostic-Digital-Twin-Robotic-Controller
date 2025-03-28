@@ -5,6 +5,6 @@ pip
 scipy
 ultralytics
 
-# Custom Packages
-mujoco_toolbox
-git+https://github.com/MGross21/agnostic-controller.git@main #egg=agnostic-controller
+# Custom Packages (editable mode)
+-e git+https://github.com/MGross21/mujoco-toolbox.git@dev#egg=mujoco-toolbox
+-e git+https://github.com/MGross21/agnostic-controller.git@main#egg=agnostic-controller
