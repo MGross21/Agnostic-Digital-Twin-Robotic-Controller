@@ -1,6 +1,9 @@
 # Cache
 __pycache__/
 
+#Env
+*-env
+
 # Script Generated Files
 # *.urdf
 *timings*

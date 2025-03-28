@@ -1,7 +1,10 @@
-mujoco_toolbox
 numpy
 pandas
 matplotlib
 pip
 scipy
 ultralytics
+
+# Custom Packages
+mujoco_toolbox
+git+https://github.com/MGross21/agnostic-controller.git@main #egg=agnostic-controller

@@ -1,6 +1,0 @@
-[submodule "digital_twin/sim/mujoco_toolbox"]
-	path = digital_twin/sim/mujoco_toolbox
-	url = https://github.com/MGross21/mujoco-toolbox
-[submodule "digital_twin/real/agnostic_controller"]
-	path = digital_twin/real/agnostic_controller
-	url = https://github.com/MGross21/agnostic-controller
