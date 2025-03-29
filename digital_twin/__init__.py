@@ -1,2 +1,2 @@
-from .digitaltwin import DigitalTwin
-from .localpubsub import LocalPubSub
+# from digital_twin.digitaltwin import DigitalTwin
+from digital_twin.localpubsub import LocalPubSub
