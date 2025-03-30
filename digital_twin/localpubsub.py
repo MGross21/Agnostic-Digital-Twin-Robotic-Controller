@@ -2,7 +2,6 @@ import socket
 import threading
 import json
 import struct
-import time
 from typing import Callable, Optional, Any
 
 class LocalPubSub:
@@ -103,3 +102,31 @@ class LocalPubSub:
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop_listener()
+
+    # Dunder method for equality comparison (==)
+    def __eq__(self, other):
+        if not isinstance(other, LocalPubSub):
+            return False
+        return (self.port == other.port and
+                self.multicast_group == other.multicast_group and
+                self.multicast_port == other.multicast_port)
+
+    # Dunder method for subscribing using the << operator (for publisher)
+    def __lshift__(self, data_tuple):
+        """Allows using the << operator to publish a message to a topic."""
+        topic, message = data_tuple
+        self.publish(topic, message)
+        return self
+
+    # Dunder method for extracting or receiving data using the >> operator (for subscriber)
+    def __rshift__(self, callback):
+        """Allows using the >> operator to subscribe to a topic."""
+        topic, callback_function = callback
+        self.subscribe(topic, callback_function)
+        return self
+
+    def __repr__(self):
+        return f"LocalPubSub(port={self.port}, multicast_group={self.multicast_group}, multicast_port={self.multicast_port})"
+
+    def __str__(self):
+        return f"LocalPubSub: Listening on {self.multicast_group}:{self.multicast_port} with port {self.port}"

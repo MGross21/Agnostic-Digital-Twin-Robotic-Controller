@@ -6,7 +6,7 @@ from digital_twin import LocalPubSub
 
 # Subscribe to the "test" topic and define a callback to handle messages
 
-with LocalPubSub(port=5001) as listener:
+with LocalPubSub(port=500) as listener:
     # Define a callback function to handle incoming messages
     def message_handler(msg):
         print(f"Received message: {msg}")
