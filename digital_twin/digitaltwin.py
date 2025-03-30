@@ -1,53 +1,17 @@
 import time
-import __editable___agnostic_controller_0_1_0_finder as agnostic_controller
-from mujoco_toolbox import Wrapper
+import mujoco_toolbox as mjtb
+from mujoco_toolbox.controllers import real_time
+from agnostic_controller  import UR5
+from digital_twin import LocalPubSub
 
-# class DigitalTwin:
-#     def __init__(self, robot=None, pb_simulation=None):
-#         self.robot = robot
-#         self.pb_simulation = pb_simulation
+UR5e = UR5()
 
-#     def start_simulation(self, home_position, duration=10000, dt=1./240.):
-#         if self.pb_simulation:
-#             self.pb_simulation.set_home_position(home_position)
-#             try:
-#                 for _ in range(duration):
-#                     self.pb_simulation.apply_pid_control(home_position, dt=dt, kp=100.0, ki=0.1, kd=10.0, use_pd=False)
-#                     self.pb_simulation.step_simulation()
-#                     time.sleep(dt)
-#             finally:
-#                 self.pb_simulation.disconnect()
 
-#     def control_robot(self, joint_positions=None, cartesian_position=None, constraints=None):
-#         if self.robot:
-#             self.robot.controller.connect()
-#             try:
-#                 if constraints:
-#                     constrained_coords = self.robot.config_space.apply_constraints(constraints)
-#                     if constrained_coords is not None:
-#                         joint_positions = self.robot.controller.inverse_kinematics(constrained_coords, [0, 0, 0, 1])
-#                     else:
-#                         print("No reachable coordinates within the given constraints.")
-#                         return
-
-#                 if joint_positions:
-#                     self.robot.controller.move_joints(joint_positions)
-#                 if cartesian_position:
-#                     self.robot.controller.move_cartesian(*cartesian_position)
-#             finally:
-#                 self.robot.controller.disconnect()
-
-#         if self.pb_simulation:
-#             if joint_positions:
-#                 self.pb_simulation.set_home_position(joint_positions)
-#             if cartesian_position:
-#                 self.pb_simulation.set_home_position(cartesian_position)
-
-#     def control_using_constraints(self, constraints):
-#         if self.robot:
-#             constrained_coords = self.robot.config_space.apply_constraints(constraints)
-#             if constrained_coords is not None:
-#                 joint_positions = self.robot.controller.inverse_kinematics(constrained_coords, [0, 0, 0, 1])
-#                 self.control_robot(joint_positions=joint_positions)
-#             else:
-#                 print("No reachable coordinates within the given constraints.")
+with (
+    mjtb.Wrapper("path/to/xml", controller=real_time) as ur5,
+    LocalPubSub(port=5_000) as sub
+):
+    ur5.liveView(show_menu=False)  # Open the simulation window
+    while True:
+        sub.subscribe("robot_pos", lambda pos: ur5.controller(ur5.model, ur5.data, {"qpos": pos}))
+        time.sleep(0.1)  # Sleep to prevent busy waiting
