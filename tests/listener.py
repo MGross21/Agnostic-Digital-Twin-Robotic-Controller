@@ -20,3 +20,4 @@ with LocalPubSub(port=500) as listener:
             pass
     except KeyboardInterrupt:
         print("Listener stopped.")
+        sys.exit(0)
