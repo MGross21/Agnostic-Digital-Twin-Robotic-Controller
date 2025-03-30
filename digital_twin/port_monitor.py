@@ -1,18 +1,18 @@
 import os
-import sys
 import socket
 import struct
 import psutil
 import time
 import platform
 import json
+import threading
 
 class PortMonitor:
-    def __init__(self, multicast_ip: str = "224.0.0.1", multicast_port: int = 5000, interval: float = 2.0, whitelist: dict = None):
+    def __init__(self, multicast_ip: str = "239.0.0.1", multicast_port: int = 5000, interval: float = 2.0, whitelist: dict = None):
         """
         Monitors open public ports (1024-49151) and listens for multicast messages.
 
-        :param multicast_ip: Multicast IP address to listen on.
+        :param multicast_ip: Multicast IP address to listen on (Aligned with LocalPubSub settings).
         :param multicast_port: Multicast port to listen on.
         :param interval: Time interval (seconds) between updates for port monitoring.
         :param whitelist: Dictionary of criteria to filter by {'ports':[], 'pids':[], 'process':[]} (optional).
@@ -43,19 +43,11 @@ class PortMonitor:
         :param port_info: Dictionary with port, pid, and process information.
         :return: True if the port_info matches any whitelist criteria, otherwise False.
         """
-        # Check if port is in whitelist
-        if port_info["port"] in self.whitelist["ports"]:
-            return True
-        
-        # Check if PID is in whitelist
-        if port_info["pid"] in self.whitelist["pids"]:
-            return True
-        
-        # Check if process name is in whitelist
-        if port_info["process"] in self.whitelist["process"]:
-            return True
-        
-        return False
+        return (
+            port_info["port"] in self.whitelist["ports"] or
+            port_info["pid"] in self.whitelist["pids"] or
+            port_info["process"] in self.whitelist["process"]
+        )
 
     def get_public_ports(self):
         """
@@ -86,16 +78,18 @@ class PortMonitor:
         Continuously listens to multicast messages on the multicast IP and port.
         """
         try:
+            print(f"Listening for multicast messages on {self.multicast_ip}:{self.multicast_port}...")
             while True:
                 data, addr = self._socket.recvfrom(4096)
                 if data:
                     try:
                         message = json.loads(data.decode())
-                        print(f"Received multicast message: {message}")
+                        print(f"[MULTICAST] Received from {addr}: {message}")
                     except json.JSONDecodeError:
-                        print(f"Received malformed multicast message: {data}")
+                        print(f"[MULTICAST] Malformed message from {addr}: {data}")
         except KeyboardInterrupt:
             print("\nMulticast listening stopped.")
+        finally:
             self._socket.close()
 
     def display_live_ports(self):
@@ -140,7 +134,6 @@ if __name__ == "__main__":
     monitor = PortMonitor(interval=2, whitelist=whitelist)
 
     # Start the multicast listener in a separate thread
-    import threading
     listener_thread = threading.Thread(target=monitor.listen_to_multicast, daemon=True)
     listener_thread.start()
 
