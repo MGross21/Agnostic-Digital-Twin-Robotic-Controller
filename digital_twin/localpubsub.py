@@ -1,6 +1,6 @@
 import socket
-import threading
 import json
+import threading
 from typing import Dict, List, Any, Callable, Optional, Set
 import random
 
@@ -16,17 +16,19 @@ class LocalPubSub:
         self._running = True
         self._closed = False
         self._lock = threading.RLock()
-        self.instance_name = f"PubSub_{self.port}"
+        self.instance_name = f"{self.__class__.__name__}({self.port})" 
 
         with self._lock:
-            self.port = self.port if self.port is not None else self._get_next_available_port()
+            if self.port is None or self.port in self._used_ports:
+                self.port = self._get_next_available_port()
             if self.port in self._used_ports:
                 raise ValueError(f"Port {self.port} is already in use!")
             self._used_ports.add(self.port)
-        
+
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow port reuse
         self._socket.bind(('localhost', self.port))
-        
+
         self._listener_thread = threading.Thread(target=self._run, daemon=True)
         self._listener_thread.start()
 
@@ -56,7 +58,8 @@ class LocalPubSub:
             message = json.loads(data.decode())
             topic = message.get('topic')
             payload = message.get('payload')
-            
+
+            # Ignore messages from the same port
             if addr[1] == self.port:
                 return
             
@@ -64,10 +67,10 @@ class LocalPubSub:
                 if topic not in self._topics:
                     self._topics[topic] = []
                 self._topics[topic].append(payload)
-                
+
                 if len(self._topics[topic]) > self.max_history:
                     self._topics[topic] = self._topics[topic][-self.max_history:]
-                
+
                 for callback in self._callbacks.get(topic, []):
                     try:
                         callback(payload)
@@ -95,18 +98,18 @@ class LocalPubSub:
                 if topic not in self._topics:
                     self._topics[topic] = []
                 self._topics[topic].append(message)
-                
+
                 if len(self._topics[topic]) > self.max_history:
                     self._topics[topic] = self._topics[topic][-self.max_history:]
-                
+
                 for callback in self._callbacks.get(topic, []):
                     try:
                         callback(message)
                     except Exception as e:
                         print(f"Error in callback for topic {topic}: {e}")
-            
+
             payload = json.dumps({'topic': topic, 'payload': message}).encode()
-            
+
             with self._lock:
                 for port in self._used_ports:
                     if port != self.port:
@@ -117,12 +120,12 @@ class LocalPubSub:
     def subscribe(self, topic: str, callback: Optional[Callable] = None) -> List[Any]:
         with self._lock:
             history = self._topics.get(topic, [])
-            
+
             if callback:
                 if topic not in self._callbacks:
                     self._callbacks[topic] = []
                 self._callbacks[topic].append(callback)
-                
+
             return history[:]
 
     def unsubscribe(self, topic: str, callback: Optional[Callable] = None) -> None:
@@ -138,19 +141,19 @@ class LocalPubSub:
             if self._closed:
                 return
             self._closed = True
-        
+
         self._running = False
-        
+
         if hasattr(self, '_listener_thread') and self._listener_thread.is_alive():
             self._listener_thread.join(timeout=1.0)
-            
+
         if hasattr(self, '_socket') and self._socket:
             with self._lock:
                 if self.port in self._used_ports:
                     self._used_ports.remove(self.port)
             try:
                 self._socket.close()
-                print(f"{self.instance_name} on port {self.port} shut down.")
+                print(f"{self.instance_name} shut down.")
             except Exception as e:
                 print(f"Error closing socket: {e}")
 
@@ -176,41 +179,27 @@ class LocalPubSub:
         with self._lock:
             return topic in self._topics
 
+    # Context management methods
+    def __enter__(self):
+        return self
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
+# Example of using LocalPubSub with context management
 if __name__ == "__main__":
     import time
 
     def print_message(msg):
         print(f"Received: {msg}")
-    
-    print("Starting pubsub1...")
-    pubsub1 = LocalPubSub()
-    pubsub1.subscribe("sensor_data", print_message)
-    
-    print("Starting pubsub2...")
-    pubsub2 = LocalPubSub()
-    
-    pubsub1.publish("sensor_data", "temperature=25")
-    pubsub2.publish("sensor_data", "humidity=60%")
-    
-    time.sleep(1)
-    
-    print(f"Used ports: {LocalPubSub.ports()}")
-    
-    # Test additional features
-    print("Testing additional features...")
-    
-    # Test __len__
-    print(f"Number of topics in pubsub1: {len(pubsub1)}")
-    
-    # Test __contains__
-    print(f"Is 'sensor_data' in pubsub1? {'sensor_data' in pubsub1}")
-    
-    # Test unsubscribe
-    pubsub1.unsubscribe("sensor_data", print_message)
-    pubsub1.publish("sensor_data", "pressure=1013")
-    
-    time.sleep(1)
-    
-    pubsub1.close()
-    pubsub2.close()
+
+    # Use the LocalPubSub class as a context manager
+    with LocalPubSub(port=5000) as pubsub:
+        # Subscribe to the "test" topic
+        pubsub.subscribe("test", print_message)
+
+        # Publish messages
+        for i in range(5):
+            pubsub.publish("test", f"Hello World {i}")
+            time.sleep(1)
