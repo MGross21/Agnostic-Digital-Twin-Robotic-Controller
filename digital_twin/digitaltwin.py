@@ -16,6 +16,7 @@ with (
     LocalPubSub(port=5_000) as sub
 ):
     ur5.liveView(show_menu=False)  # Open the simulation window
+    ur5.gravity = [0,0,0]  # Disable gravity
     while True:
         sub.subscribe("robot_pos", lambda pos: ur5.controller(ur5.model, ur5.data, {"qpos": pos}))
         time.sleep(0.1)  # Sleep to prevent busy waiting
