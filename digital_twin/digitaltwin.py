@@ -2,8 +2,9 @@ import time
 import mujoco_toolbox as mjtb
 from mujoco_toolbox.controllers import real_time
 from agnostic_controller  import UR5
-from localpubsub import LocalPubSub
+from communication import LocalPubSub
 from pathlib import Path
+import math
 
 UR5e = UR5()
 
@@ -15,6 +16,7 @@ with (
     mjtb.Wrapper(ur5_model, meshdir=ur5_meshes, controller=real_time) as ur5,
     LocalPubSub(port=5_000) as sub
 ):
+    ur5._model.qpos0 = [0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
     ur5.liveView(show_menu=False)  # Open the simulation window
     ur5.gravity = [0,0,0]  # Disable gravity
     while True:
