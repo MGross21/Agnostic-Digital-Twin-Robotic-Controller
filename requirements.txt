@@ -3,7 +3,8 @@ pandas
 matplotlib
 pip
 scipy
-ultralytics
+ultralytics  # YOLOv11
+pyrealsense2 # RealSense camera library
 
 # Custom Packages (editable mode)
 # -e git+https://github.com/MGross21/mujoco-toolbox.git@dev#egg=mujoco-toolbox
