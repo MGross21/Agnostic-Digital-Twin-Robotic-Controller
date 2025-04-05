@@ -4,6 +4,9 @@ __pycache__/
 #Env
 *-env
 
+# external libraries
+librealsense/
+
 # Script Generated Files
 # *.urdf
 *timings*

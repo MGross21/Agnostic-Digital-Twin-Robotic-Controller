@@ -2,6 +2,8 @@
 
 ## Installation Instructions
 
+Python Version: `3.11.3`
+
 ```bash
 git clone https://github.com/MGross21/Agnostic-Digital-Twin-Robotic-Controller
 cd Agnostic-Digital-Twin-Robotic-Controller
