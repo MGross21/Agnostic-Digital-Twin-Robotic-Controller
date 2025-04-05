@@ -1,6 +1,16 @@
 #!/bin/bash
 
+# Check Python version
+PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+REQUIRED_VERSION="3.12"
 
+if [[ $(echo -e "$PYTHON_VERSION\n$REQUIRED_VERSION" | sort -V | head -n1) == "$REQUIRED_VERSION" && "$PYTHON_VERSION" != "$REQUIRED_VERSION" ]]; then
+    echo "Python version is $PYTHON_VERSION, which is higher than 3.12. Proceeding with the script..."
+else
+    echo "Python version is $PYTHON_VERSION, which is lower than 3.12. Running requirements.txt instead..."
+    pip3 install -r requirements.txt
+    exit 0
+fi
 
 
 CURRENT_DIR=$(pwd)
