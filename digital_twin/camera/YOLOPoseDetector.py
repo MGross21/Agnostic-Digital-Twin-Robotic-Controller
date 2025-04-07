@@ -3,18 +3,12 @@ import cv2
 import torch
 import os
 import sys
+import numpy as np
 
 torch.cuda.empty_cache()
 
-# Attempt to suppress terminal output from YOLO
-try:
-    os.environ['YOLO_VERBOSE'] = 'False'
-finally:
-    YOLO_VERBOSE = False
-
-# Model Source https://docs.ultralytics.com/tasks/pose/
-class YOLOPoseDetector(object):
-    def __init__(self, model_path='yolo11m.pt', camera_id=0, conf_threshold=0.5, show_window=True, verbose=False):
+class YOLOObjectDetector:
+    def __init__(self, model_path='yolov8n.pt', camera_id=0, conf_threshold=0.5, show_window=True, verbose=False):
         self.model_path = model_path
         self.camera_id = camera_id
         self.cap = None
@@ -26,12 +20,12 @@ class YOLOPoseDetector(object):
         self.frame_height = None
 
     def initialize_camera(self):
-        if self.cap is None:
-            self.cap = cv2.VideoCapture(self.camera_id)
-            if not self.cap.isOpened():
-                raise ValueError(f"Unable to open camera with id {self.camera_id}")
-            self.frame_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            self.frame_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.cap = cv2.VideoCapture(self.camera_id)
+        if not self.cap.isOpened():
+            raise ValueError(f"Unable to open camera with id {self.camera_id}")
+        self.frame_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.frame_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        print(f"[INFO] Camera initialized: {self.frame_width}x{self.frame_height}")
 
     def release_camera(self):
         if self.cap:
@@ -40,92 +34,119 @@ class YOLOPoseDetector(object):
 
     def load_model(self):
         if not self.verbose:
-            # Suppress terminal output
             sys.stdout = open(os.devnull, 'w')
         self.model = YOLO(self.model_path)
         if not self.verbose:
-            # Restore terminal output
             sys.stdout = sys.__stdout__
+        print(f"[INFO] YOLO model loaded: {self.model_path}")
 
-    def detect_pose(self, image):
-        if self.model is None:
-            self.load_model()
-        results = self.model(image)
-        return results[0].plot()
+    def get_detections(self, frame):
+        results = self.model(frame)[0]
+        detections = []
+
+        if results.boxes is not None:
+            for box in results.boxes:
+                cls_id = int(box.cls[0])
+                conf = float(box.conf[0])
+                if conf < self.conf_threshold:
+                    continue
+
+                xyxy = box.xyxy[0].cpu().numpy()  # [x1, y1, x2, y2]
+                x1, y1, x2, y2 = map(int, xyxy)
+                cx = int((x1 + x2) / 2)
+                cy = int((y1 + y2) / 2)
+                label = self.model.names[cls_id]
+
+                detections.append({
+                    'class_id': cls_id,
+                    'label': label,
+                    'confidence': conf,
+                    'bbox': (x1, y1, x2, y2),
+                    'center_px': (cx, cy),
+                    'center_norm': (cx / self.frame_width, cy / self.frame_height)
+                })
+
+        return detections, results
 
     def camera_detection(self):
         self.initialize_camera()
-        if self.model is None:
-            self.load_model()
+        self.load_model()
+
         try:
             while True:
                 ret, frame = self.cap.read()
                 if not ret:
                     break
-                
-                # Perform object detection
-                results = self.model(frame)
 
-                # List to store all keypoints
-                all_keypoints = []
+                detections, results = self.get_detections(frame)
 
-                # Visualize the results on the frame
-                for result in results:
-                    boxes = result.boxes.cpu().numpy()
-                    for box in boxes:
-                        # Extract the center coordinates, width, and height
-                        cx, cy, w, h = box.xywh[0].astype(float)
-                        rect = ((cx, cy), (w, h), 0)  # Angle is set to 0 as it's not provided
-                        box_points = cv2.boxPoints(rect).astype(int)
+                for det in detections:
+                    x1, y1, x2, y2 = det['bbox']
+                    cx, cy = det['center_px']
+                    label = det['label']
+                    conf = det['confidence']
 
-                        # Draw all boxes regardless of confidence score
-                        cv2.drawContours(frame, [box_points], 0, (0, 255, 0), 2)
-                        cv2.putText(frame, f'{result.names[int(box.cls[0])]} {box.conf[0]:.2f}',
-                                    (int(cx), int(cy) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-                        # Normalize the coordinates and convert to tuple
-                        normalized_cx = cx / self.frame_width
-                        normalized_cy = cy / self.frame_height
-                        all_keypoints.append((float(normalized_cx), float(normalized_cy)))
+                    # Draw bounding box and label
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
+                    cv2.putText(frame, f'{label} {conf:.2f}', (x1, y1 - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-                # Display the frame if show_window is True
                 if self.show_window:
                     cv2.imshow('YOLO Object Detection', frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
-                yield all_keypoints
+                yield detections
         finally:
             self.release_camera()
             if self.show_window:
                 cv2.destroyAllWindows()
 
-    def train(self, data_yaml, epochs=100, imgsz=640):
-        if self.model is None:
-            self.load_model()
-        self.model.train(data=data_yaml, epochs=epochs, imgsz=imgsz)
-
-    def validate(self):
-        if self.model is None:
-            self.load_model()
-        return self.model.val()
-
     def predict_image(self, image_path):
-        if self.model is None:
-            self.load_model()
-        return self.model(image_path)
+        self.load_model()
+        frame = cv2.imread(image_path)
+        self.frame_height, self.frame_width = frame.shape[:2]
+
+        detections, results = self.get_detections(frame)
+
+        # Draw results
+        for det in detections:
+            x1, y1, x2, y2 = det['bbox']
+            cx, cy = det['center_px']
+            label = det['label']
+            conf = det['confidence']
+
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
+            cv2.putText(frame, f'{label} {conf:.2f}', (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+
+        if self.show_window:
+            cv2.imshow('YOLO Detection', frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+        return detections
 
     def close(self):
-        print("Closing CV Process...")
+        print("[INFO] Closing camera...")
         self.release_camera()
         if self.show_window:
             cv2.destroyAllWindows()
         sys.exit(0)
 
+
 if __name__ == '__main__':
-    detector = YOLOPoseDetector(camera_id=1, show_window=True, verbose=False, conf_threshold=0.25)
+    detector = YOLOObjectDetector(
+        camera_id=0,
+        model_path='yolo11n-seg.pt',
+        conf_threshold=0.3,
+        show_window=True
+    )
     try:
-        for keypoints in detector.camera_detection():
-            print("Detected keypoints:", keypoints)
+        for detections in detector.camera_detection():
+            print("Detections:", detections)  # list of dicts per frame
     except KeyboardInterrupt:
         detector.close()
