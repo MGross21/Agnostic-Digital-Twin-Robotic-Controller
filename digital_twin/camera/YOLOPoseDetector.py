@@ -147,6 +147,7 @@ if __name__ == '__main__':
     )
     try:
         for detections in detector.camera_detection():
+            os.system('cls' if os.name == 'nt' else 'clear')
             print("Detections:", detections)  # list of dicts per frame
     except KeyboardInterrupt:
         detector.close()
