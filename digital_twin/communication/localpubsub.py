@@ -111,7 +111,7 @@ class LocalPubSub:
         """Shutdown and exit the program cleanly."""
         print("Shutting down LocalPubSub...")
         self.stop_listener()
-        # sys.exit(0)
+        sys.exit(0)
 
     def __enter__(self):
         self.start_listener()
