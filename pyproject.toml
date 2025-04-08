@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "digital-twin"
+version = "0.1.0"
+description = "Environment setup for Digital Twin with MuJoCo and YOLOv11"
+authors = ["MGross21 <MGross21@example.com>"]
+readme = "README.md"
+packages = []
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+scipy = "*" 
+ultralytics = "*" # YOLOv11
+opencv-python = "*" # OpenCV for image processing
+pyrealsense2 = "*" # Intel RealSense SDK for depth camera
+
+# Add editable local dependencies using Poetry path dependencies
+mujoco-toolbox = { path = "digital_twin/mujoco_toolbox", develop = true }
+agnostic-controller = { path = "digital_twin/agnostic_controller", develop = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
