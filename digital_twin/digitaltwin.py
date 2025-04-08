@@ -1,6 +1,6 @@
 import time
 import mujoco_toolbox as mjtb
-from mujoco_toolbox import real_time,Builder,WORLD_ASSETS
+from mujoco_toolbox import *
 from agnostic_controller import UR5
 from communication import LocalPubSub
 from pathlib import Path
@@ -14,10 +14,19 @@ ur5_root = Path(__file__).parent / "sim/model/static/ur5e_vention.xml"
 # ur5_model = str(ur5_root / "UR5.urdf")
 # ur5_meshes = str(ur5_root / "meshes" / "collision")
 
-model = Builder(str(ur5_root), WORLD_ASSETS)
+
+IN_TO_M = 0.0254
+
+# Glovebox dimensions
+width = 75 # in
+depth = 60 # in
+height = 40 # in
+
+gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, pos_y=0.4)
 
 with (
-    mjtb.Wrapper(model, controller=real_time) as ur5,
+    mjtb.Wrapper(str(ur5_root), WORLD_ASSETS, gb, 
+                 controller=real_time) as ur5,
     LocalPubSub(port=5_000) as sub
 ):
     ur5._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
