@@ -22,7 +22,7 @@ width = 75 # in
 depth = 60 # in
 height = 40 # in
 
-gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, pos_y=0.4)
+gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, pos_x=0.5, pos_y=-0.4)
 
 with (
     mjtb.Wrapper(str(ur5_root), WORLD_ASSETS, gb, 

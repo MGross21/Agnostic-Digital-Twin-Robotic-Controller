@@ -65,7 +65,7 @@
     <light name="ambient" pos="0 0 10"/> 
 
     <!--Vention Slide-->
-    <body name="vention_slide" pos="0 0 0.163">
+    <body name="vention_slide" pos="0 0 0.163" quat="0.7071 0 0 0.7071">
       <inertial mass="3.7" pos="0 0 0" diaginertia="0.0102675 0.0102675 0.00666"/>
       <joint name="vention_slide_y" type="slide" axis="0 1 0" class="size3"/>
       <geom type="box" size="0.13335 0.13335 0.015" pos="0 0 0.015" material="urblue" class="visual"/>
