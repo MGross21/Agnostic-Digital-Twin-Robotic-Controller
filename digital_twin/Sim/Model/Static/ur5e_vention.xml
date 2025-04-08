@@ -1,5 +1,5 @@
 <mujoco model="ur5e">
-  <compiler angle="radian" meshdir="digital_twin\mujoco_toolbox\tests\models\UR5e\meshes" autolimits="true"/>
+  <compiler angle="radian" meshdir="digital_twin/mujoco_toolbox/tests/models/UR5e/meshes" autolimits="true"/>
 
   <option integrator="implicitfast"/>
 
@@ -7,8 +7,7 @@
     <default class="ur5e">
       <material specular="0.5" shininess="0.25"/>
       <joint axis="0 1 0" range="-6.28319 6.28319" armature="0.1"/>
-      <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="2000" biasprm="0 -2000 -400"
-        forcerange="-150 150"/>
+      <general gaintype="fixed" biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="2000" biasprm="0 -2000 -400" forcerange="-150 150"/>
       <default class="size3">
         <default class="size3_limited">
           <joint range="-3.1415 3.1415"/>
@@ -67,7 +66,7 @@
       <joint name="vention_slide_x" axis="1 0 0" class="size3"/>
       <geom type="box" size="0.13335 0.13335 0.015" pos="0 0 0.015" material="black" class="visual"/>
       <!--UR5e Robot-->
-      <body name="base" quat="0 0 0.03 -1" childclass="ur5e">
+      <body name="base" pos="0 0 0.03" quat="0 0 0 -1" childclass="ur5e">
         <inertial mass="4.0" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
         <geom mesh="base_0" material="black" class="visual"/>
         <geom mesh="base_1" material="jointgray" class="visual"/>
@@ -139,6 +138,6 @@
   </actuator>
 
   <keyframe>
-    <key name="home" qpos="-1.5708 -1.5708 1.5708 -1.5708 -1.5708 0" ctrl="-1.5708 -1.5708 1.5708 -1.5708 -1.5708 0"/>
+    <key name="home" qpos="0 -1.5708 -1.5708 1.5708 -1.5708 -1.5708 0" ctrl="0 -1.5708 -1.5708 1.5708 -1.5708 -1.5708 0"/>
   </keyframe>
 </mujoco>
