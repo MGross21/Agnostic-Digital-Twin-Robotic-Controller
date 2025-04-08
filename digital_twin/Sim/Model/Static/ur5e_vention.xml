@@ -56,15 +56,19 @@
     <mesh file="wrist2_1.obj"/>
     <mesh file="wrist2_2.obj"/>
     <mesh file="wrist3.obj"/>
+
   </asset>
 
   <worldbody>
     <light name="spotlight" mode="targetbodycom" target="wrist_2_link" pos="0 -1 2"/>
+    <geom name="floor" size="0 0 .05" type="plane" material="grid" condim="3"/>
+    <light name="ambient" pos="0 0 10"/> 
+
     <!--Vention Slide-->
     <body name="vention_slide" pos="0 0 0.163">
       <inertial mass="3.7" pos="0 0 0" diaginertia="0.0102675 0.0102675 0.00666"/>
-      <joint name="vention_slide_x" axis="1 0 0" class="size3"/>
-      <geom type="box" size="0.13335 0.13335 0.015" pos="0 0 0.015" material="black" class="visual"/>
+      <joint name="vention_slide_y" type="slide" axis="0 1 0" class="size3"/>
+      <geom type="box" size="0.13335 0.13335 0.015" pos="0 0 0.015" material="urblue" class="visual"/>
       <!--UR5e Robot-->
       <body name="base" pos="0 0 0.03" quat="0 0 0 -1" childclass="ur5e">
         <inertial mass="4.0" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
@@ -128,7 +132,7 @@
   </worldbody>
 
   <actuator>
-    <position name="vention_slide_actuator" joint="vention_slide_x" kp="1000" />
+    <position name="vention_slide_actuator" joint="vention_slide_y" kp="100" kv="10"/>
     <general class="size3" name="shoulder_pan" joint="shoulder_pan_joint"/>
     <general class="size3" name="shoulder_lift" joint="shoulder_lift_joint"/>
     <general class="size3_limited" name="elbow" joint="elbow_joint"/>
