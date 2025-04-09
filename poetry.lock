@@ -14,18 +14,13 @@ files = [
 
 [[package]]
 name = "agnostic-controller"
-version = "0.2.0"
+version = "0.3.0"
 description = "Agnostic Robotic Controller Project"
 optional = false
 python-versions = ">=3.6,<4.0"
 groups = ["main"]
 files = []
 develop = true
-
-[package.dependencies]
-matplotlib = "*"
-numpy = "*"
-scipy = "*"
 
 [package.source]
 type = "directory"
@@ -1162,16 +1157,32 @@ usd = ["pillow", "usd-core"]
 
 [[package]]
 name = "mujoco-toolbox"
-version = "5.0.1-rc.1"
+version = "0.5.27"
 description = "A modern package to handle MuJoCo environments"
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = "^3.10"
 groups = ["main"]
 files = []
 develop = true
 
+[package.dependencies]
+colorama = "*"
+defusedxml = "^0.7.1"
+ffmpeg = "*"
+ipywidgets = "*"
+matplotlib = "*"
+mediapy = "*"
+mujoco = "*"
+numpy = "*"
+opencv-python = "*"
+pyyaml = "*"
+rich = "*"
+scipy = "*"
+screeninfo = "*"
+tqdm = "*"
+trimesh = "*"
+
 [package.extras]
-beautified = ["colorama", "rich"]
 gym = ["gym"]
 
 [package.source]
