@@ -16,6 +16,12 @@ poetry install
 
 ```mermaid
 classDiagram
+    Camera --> Perception
+    Computer --> Perception
+    Perception --> Controller
+    Controller --> Simulation
+
+    DigitalTwin <|-- Perception
     DigitalTwin <|-- Controller
     DigitalTwin <|-- Simulation
 
@@ -23,20 +29,29 @@ classDiagram
     DigitalTwin : +run()
     DigitalTwin : +shutdown()
 
+    class Camera {
+        +captureImage()
+        +streamData()
+    }
+
+    class Computer {
+        +processImages()
+        +extractObjectPoses()
+    }
+
+    class Perception {
+        +detectObjects()
+        +estimatePose()
+    }
+
     class Controller {
         +sendCommands()
         +readStatus()
+        +inverseKinematics()
     }
 
     class Simulation {
-        +sendCommands()
-        +readStatus()
-    }
-
-    Camera --> Simulation
-    Camera --> Controller
-
-    class Camera {
-        +detectObjects()
+        +simulateRobot()
+        +simulateEnvironment()
     }
 ```
