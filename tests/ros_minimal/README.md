@@ -4,4 +4,4 @@ ROS Communication Reproduction using custom [UDP Protocol](Agnostic-Digital-Twin
 
 ## Results
 
-![ROS Talker/Listener Demo](../../assets/images/ros_minimal_demo.png)
+![ROS Talker/Listener Demo](assets/images/ros_minimal_demo.png)
