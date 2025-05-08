@@ -1,4 +1,9 @@
+# Digital Twin Project Progress
+
+Outlines Critical Progress Updates
+
 ## First Test
+
 Date: `February 6, 2025`
 
 1. Socket Connection
@@ -14,9 +19,8 @@ Date: `February 6, 2025`
    3. Power Off
 
 ```python
-    # Note use of Asynchronous Context Manager
-    async with AgnosticController(ElephantRobotics,"192.168.1.159", 5001) as robot:
-        await robot.get_joint_positions()
+with UniversalRobotics("192.168.1.159", 5001) as ur5:
+   ur5.get_joint_positions()
 ```
 
 ```bash
@@ -37,11 +41,12 @@ Date: `February 6, 2025`
 ```
 
 ## Computer Vision
+
 Date: `February 21, 2025`
 
 **Toothbrush?** Will have to look into other models in the future that have better common object detection.
 
-![Object Detection](../Assets/Images/MarkerDetectionToothbrush.png)
+![Object Detection](../assets/images/MarkerDetectionToothbrush.png)
 
 ### Output
 
@@ -54,10 +59,12 @@ Detected keypoints: [(0.46652970314025877, 0.5224477132161458), (0.6760946273803
 ```
 
 ### Coordinate System
+
 *Top Left is Origin*
 Normalizing the camera frame will allow for any camera to be used. In future steps, the pixel location can be converted to real world coordinate postitions.
 
 #### Drawbacks
+
 * Will require `x` and `y` camera as isometric RGB does not translate the required depth of field.
 
 Will look into RGBD and/or Trained 6DOF Pose Model at a future date.
