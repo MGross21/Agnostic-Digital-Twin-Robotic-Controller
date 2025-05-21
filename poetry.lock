@@ -13,9 +13,9 @@ files = [
 ]
 
 [[package]]
-name = "agnostic-controller"
+name = "armctl"
 version = "0.3.0"
-description = "Agnostic Robotic Controller Project"
+description = "Agnostic Robotic Manipulator Controller"
 optional = false
 python-versions = ">=3.6,<4.0"
 groups = ["main"]
@@ -24,7 +24,7 @@ develop = true
 
 [package.source]
 type = "directory"
-url = "digital_twin/agnostic_controller"
+url = "digital_twin/armctl"
 
 [[package]]
 name = "asttokens"
@@ -2523,4 +2523,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "b239d5c63adf0bd9ceee0626a2d6972b8fbc3d214584987a0e263b0928a3f4b6"
+content-hash = "32b7c33e9d3d37801818f266b07c98f4b64bee7e689feae36f714ef40cfcf666"

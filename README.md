@@ -1,13 +1,20 @@
-# Agnostic Digital Twin Robotic Controller
+# Glovebox Digital Twin
+
+This project integrates the [Mujoco Toolbox](https://github.com/MGross21/mujoco-toolbox) and [armctl](https://github.com/MGross21/armctl) repositories. Developed as part of a master's thesis at Arizona State University.
 
 ## Installation Instructions
+
+> [!Note]
+> For non-Windows users, installation steps may vary slightly. Adjust the commands according to your operating system.
 
 Python Version: `3.11.3`
 
 ```bash
-git clone https://github.com/MGross21/Agnostic-Digital-Twin-Robotic-Controller
-cd Agnostic-Digital-Twin-Robotic-Controller
-python -3.11 -m venv dt-env
+git clone https://github.com/MGross21/glovebox-digitaltwin
+cd glovebox-digitaltwin
+py -3.11 -m venv .venv
+.\.venv\Scripts\activate
+python.exe -m pip install --upgrade pip
 pip install poetry
 poetry install
 ```

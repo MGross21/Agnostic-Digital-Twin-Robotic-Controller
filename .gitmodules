@@ -1,9 +1,9 @@
 [submodule "digital_twin/mujoco_toolbox"]
     path = digital_twin/mujoco_toolbox
     url = https://github.com/MGross21/mujoco-toolbox.git
-    branch = dev
-
-[submodule "digital_twin/agnostic_controller"]
-    path = digital_twin/agnostic_controller
-    url = https://github.com/MGross21/agnostic-controller.git
     branch = main
+
+[submodule "digital_twin/armctl"]
+	path = digital_twin/armctl
+	url = https://github.com/MGross21/armctl.git
+	branch = main
