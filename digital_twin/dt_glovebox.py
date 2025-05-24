@@ -1,7 +1,7 @@
 import time
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import *
-from agnostic_controller import UR5
+from armctl import UR5
 from communication import LocalPubSub
 from pathlib import Path
 import math
