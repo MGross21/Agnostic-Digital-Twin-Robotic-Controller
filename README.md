@@ -7,7 +7,11 @@ This project integrates the [mujoco-toolbox](https://github.com/MGross21/mujoco-
 > [!Note]
 > For non-Windows users, installation steps may vary slightly. Adjust the commands according to your operating system.
 
-Python Version: `3.11.3`
+Python Version: `3.11`
+
+```bash
+winget install -e --id Python.Python.3.11
+```
 
 ```bash
 git clone https://github.com/MGross21/glovebox-digitaltwin
