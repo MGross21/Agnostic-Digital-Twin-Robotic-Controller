@@ -46,11 +46,13 @@ classDiagram
     }
 
     class Controller {
+        <<armctl>>
         +sendCommands()
         +receiveStatus()
     }
 
     class Simulation {
+        <<mujoco-toolbox>>
         +updateRobot()
         +updateEnvironment()
     }
