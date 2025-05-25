@@ -10,7 +10,7 @@ This project integrates the [mujoco-toolbox](https://github.com/MGross21/mujoco-
 Python Version: `3.11`
 
 ```bash
-winget install -e --id Python.Python.3.11
+winget install --id=Python.Python.3.11 -e
 ```
 
 ```bash
