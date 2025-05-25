@@ -22,38 +22,28 @@ poetry install
 ## Core Structure of Digital Twin
 
 ```mermaid
-classDiagram
-    %% UDP Topics:
-    %% Camera --> Computer: /camera/object_pose
-    %% Computer --> Controller: /controller/command (pub)
-    %% Controller --> Computer: /controller/status (pub)
-    %% Computer --> Simulation: /sim/update (pub)
-    %% Simulation --> Computer: /sim/state (pub)
+graph TD
+    Camera["Camera
++captureImage()
++detectObjectPose()"]
 
-    Camera --> Computer
-    Computer --> Controller
-    Controller --> Computer
-    Computer --> Simulation
-    Simulation --> Computer
+    Computer["Computer
++processCameraData()"]
 
-    class Camera {
-        +captureImage()
-        +detectObjectPose()
-    }
+    Controller["Controller
+<<armctl>>
++sendCommands()
++receiveStatus()"]
 
-    class Computer {
-        +processCameraData()
-    }
+    Simulation["Simulation
+<<mujoco-toolbox>>
++updateRobot()
++updateEnvironment()"]
 
-    class Controller {
-        <<armctl>>
-        +sendCommands()
-        +receiveStatus()
-    }
+    Camera -->|/camera/object_pose | Computer
+    Computer -->|/controller/command | Controller
+    Controller -->|/controller/status | Computer
+    Computer -->|/sim/update | Simulation
+    Simulation -->|/sim/state | Computer
 
-    class Simulation {
-        <<mujoco-toolbox>>
-        +updateRobot()
-        +updateEnvironment()
-    }
 ```
