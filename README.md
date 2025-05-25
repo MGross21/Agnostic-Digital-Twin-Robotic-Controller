@@ -23,42 +23,35 @@ poetry install
 
 ```mermaid
 classDiagram
-    Camera --> Perception
-    Computer --> Perception
-    Perception --> Controller
-    Controller --> Simulation
+    %% UDP Topics:
+    %% Camera --> Computer: /camera/object_pose
+    %% Computer --> Controller: /controller/command (pub)
+    %% Controller --> Computer: /controller/status (pub)
+    %% Computer --> Simulation: /sim/update (pub)
+    %% Simulation --> Computer: /sim/state (pub)
 
-    DigitalTwin <|-- Perception
-    DigitalTwin <|-- Controller
-    DigitalTwin <|-- Simulation
-
-    DigitalTwin : +start()
-    DigitalTwin : +run()
-    DigitalTwin : +shutdown()
+    Camera --> Computer
+    Computer --> Controller
+    Controller --> Computer
+    Computer --> Simulation
+    Simulation --> Computer
 
     class Camera {
         +captureImage()
-        +streamData()
+        +detectObjectPose()
     }
 
     class Computer {
-        +processImages()
-        +extractObjectPoses()
-    }
-
-    class Perception {
-        +detectObjects()
-        +estimatePose()
+        +processCameraData()
     }
 
     class Controller {
         +sendCommands()
-        +readStatus()
-        +inverseKinematics()
+        +receiveStatus()
     }
 
     class Simulation {
-        +simulateRobot()
-        +simulateEnvironment()
+        +updateRobot()
+        +updateEnvironment()
     }
 ```
