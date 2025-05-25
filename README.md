@@ -30,20 +30,17 @@ graph TD
     Computer["Computer
 +processCameraData()"]
 
-    Controller["Controller
-<<armctl>>
+    Controller["Controller [armctl]
 +sendCommands()
 +receiveStatus()"]
 
-    Simulation["Simulation
-<<mujoco-toolbox>>
+    Simulation["Simulation [mujoco-toolbox]
 +updateRobot()
 +updateEnvironment()"]
 
-    Camera -->|/camera/object_pose | Computer
-    Computer -->|/controller/command | Controller
-    Controller -->|/controller/status | Computer
-    Computer -->|/sim/update | Simulation
-    Simulation -->|/sim/state | Computer
-
+    Camera -->|/camera/object_pose| Computer
+    Computer -->|/controller/command| Controller
+    Controller -->|/controller/status| Computer
+    Computer -->|/sim/update| Simulation
+    Simulation -->|/sim/state| Computer
 ```
