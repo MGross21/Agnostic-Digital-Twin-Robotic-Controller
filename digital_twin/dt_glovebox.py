@@ -1,18 +1,21 @@
 import time
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import *
-from armctl import UR5
+from armctl import *
 from communication import LocalPubSub
 from pathlib import Path
 import math
 
-UR5e = UR5()
 
-ur5_root = Path(__file__).parent / "sim/model/static/ur5e_vention.xml"
-# ur5_root = Path(__file__).parent / "sim/model/static/UniversalRobotics/UR5e/ur5e.xml"
-# ur5_root = Path(__file__).parent / "sim/model/static/UniversalRobotics/UR5/"
-# ur5_model = str(ur5_root / "UR5.urdf")
-# ur5_meshes = str(ur5_root / "meshes" / "collision")
+ur5e_vention_dir = Path(__file__).parent / "sim/model/static"
+mjcf_path = ur5e_vention_dir / "ur5e_vention.xml"
+meshes_dir = ur5e_vention_dir / "UniversalRobotics" / "UR5e" / "meshes"
+
+ur5e_vention = {
+    "mjcf": (mjcf_path.read_text()).format(meshdir=meshes_dir.as_posix()),
+    "ur_controller": UR5e(),
+    "vention_controller": Vention()
+}
 
 
 IN_TO_M = 0.0254
@@ -24,8 +27,10 @@ height = 40 # in
 
 gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, pos_x=0.5, pos_y=-0.4)
 
+build = Builder(gb,ur5e_vention["mjcf"],WORLD_ASSETS)
+
 with (
-    mjtb.Wrapper(str(ur5_root), WORLD_ASSETS, gb, 
+    mjtb.Wrapper(build, 
                  controller=real_time) as ur5,
     LocalPubSub(port=5_000) as sub
 ):
