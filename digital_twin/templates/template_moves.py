@@ -2,8 +2,6 @@ from armctl import Vention, UR5
 import math
 import time
 
-
-
 def sweep_robot():
     ur5_sweep_vantage = [math.radians(angle) for angle in [90, -85, 60, -65, -90, 0]]
 

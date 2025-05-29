@@ -30,8 +30,7 @@ gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, p
 build = Builder(gb,ur5e_vention["mjcf"],WORLD_ASSETS)
 
 with (
-    mjtb.Wrapper(build, 
-                 controller=real_time) as ur5,
+    mjtb.Wrapper(build, controller=real_time) as ur5,
     LocalPubSub(port=5_000) as sub
 ):
     ur5._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
