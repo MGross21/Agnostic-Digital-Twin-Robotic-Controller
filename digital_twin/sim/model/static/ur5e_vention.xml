@@ -1,4 +1,4 @@
-<mujoco model="ur5e">
+<mujoco model="ur5e_vention">
   <compiler angle="radian" meshdir="{meshdir}" autolimits="true"/>
 
   <option integrator="implicitfast"/>
@@ -61,7 +61,7 @@
 
   <worldbody>
     <light name="spotlight" mode="targetbodycom" target="wrist_2_link" pos="0 -1 2"/>
-    <!-- <geom name="floor" size="0 0 .05" type="plane" material="grid" condim="3"/> -->
+    <geom name="floor" size="0 0 .05" type="plane" material="grid" condim="3"/>
     <light name="ambient" pos="0 0 10"/> 
 
     <!--Vention Slide-->

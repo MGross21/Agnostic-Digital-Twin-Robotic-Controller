@@ -2,7 +2,7 @@ import time
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import *
 from armctl import *
-from communication import LocalPubSub
+from communication.localpubsub import LocalPubSub
 from pathlib import Path
 import math
 
@@ -17,6 +17,8 @@ ur5e_vention = {
     "vention_controller": Vention()
 }
 
+# print(ur5e_vention["mjcf"])
+
 
 IN_TO_M = 0.0254
 
@@ -27,10 +29,12 @@ height = 40 # in
 
 gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, pos_x=0.5, pos_y=-0.4)
 
-build = Builder(gb,ur5e_vention["mjcf"],WORLD_ASSETS)
+build = Builder(ur5e_vention["mjcf"],gb,WORLD_ASSETS)
+
+# print(str(build))
 
 with (
-    mjtb.Wrapper(build, controller=real_time) as ur5,
+    mjtb.Simulation(build, controller=real_time, clear_screen=False) as ur5,
     LocalPubSub(port=5_000) as sub
 ):
     ur5._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
