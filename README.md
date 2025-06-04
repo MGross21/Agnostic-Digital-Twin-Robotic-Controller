@@ -48,3 +48,7 @@ graph TD
     Computer -->|/sim/update| Simulation
     Simulation -->|/sim/state| Computer
 ```
+
+## Visual Representation
+
+![Glovebox UR5 Vention](assets/images/glovebox_ur5_vention.png)
