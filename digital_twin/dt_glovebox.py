@@ -17,9 +17,6 @@ ur5e_vention = {
     "vention_controller": Vention()
 }
 
-# print(ur5e_vention["mjcf"])
-
-
 IN_TO_M = 0.0254
 
 # Glovebox dimensions
@@ -31,15 +28,13 @@ gb = glovebox(width=width*IN_TO_M, height=height*IN_TO_M, depth=depth*IN_TO_M, p
 
 build = Builder(ur5e_vention["mjcf"],gb,WORLD_ASSETS)
 
-# print(str(build))
-
 with (
     mjtb.Simulation(build, controller=real_time, clear_screen=False) as ur5,
     LocalPubSub(port=5_000) as sub
 ):
     ur5._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
-    ur5.launch(show_menu=False)  # Open the simulation window
-    ur5.gravity = [0,0,0]  # Disable gravity
+    ur5.launch(show_menu=False)
+    ur5.gravity = [0,0,0]
     while True:
-        sub.subscribe("robot_pos", lambda pos: ur5.controller(ur5.model, ur5.data, {"qpos": pos}))
+        sub.subscribe("/sim/update", lambda pos: ur5.controller(ur5.model, ur5.data, {"qpos": pos}))
         time.sleep(0.1)  # Sleep to prevent busy waiting
