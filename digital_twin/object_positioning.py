@@ -13,7 +13,7 @@ def main():
             if not ret:
                 break
             _, objects = detector.process_frame(frame)
-            pub.publish('camera/object_pose', objects)
+            pub.publish('/camera/object_pose', objects)
             # Optional: show window for debug
             cv2.imshow('YOLO Pose Homography', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
