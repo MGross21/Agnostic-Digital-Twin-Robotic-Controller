@@ -41,17 +41,25 @@ class YOLOPoseHomography:
                 x_center = (x_min + x_max) / 2
                 y_center = (y_min + y_max) / 2
                 norm_x, norm_y = None, None
-                inside_field = True
+                all_inside = True
                 if self.homography_matrix is not None:
-                    norm_pt = cv2.perspectiveTransform(
-                        np.array([[[x_center, y_center]]], dtype=np.float32),
-                        self.homography_matrix
-                    )
-                    norm_x, norm_y = norm_pt[0][0]
-                    # Only keep objects whose center is within [0,1] x [0,1]
-                    if not (0 <= norm_x <= 1 and 0 <= norm_y <= 1):
-                        inside_field = False
-                if not inside_field:
+                    # Transform all four corners and center
+                    pts = np.array([
+                        [[x_min, y_min]],
+                        [[x_max, y_min]],
+                        [[x_max, y_max]],
+                        [[x_min, y_max]],
+                        [[x_center, y_center]]
+                    ], dtype=np.float32)
+                    norm_pts = cv2.perspectiveTransform(pts, self.homography_matrix)
+                    # Check all corners and center are within [0,1] x [0,1]
+                    for pt in norm_pts:
+                        nx, ny = pt[0]
+                        if not (0 <= nx <= 1 and 0 <= ny <= 1):
+                            all_inside = False
+                            break
+                    norm_x, norm_y = norm_pts[-1][0]
+                if not all_inside:
                     continue
                 label = result.names[int(result.boxes.cls[i].cpu().numpy())]
                 conf = float(result.boxes.conf[i].cpu().numpy())
@@ -69,8 +77,20 @@ class YOLOPoseHomography:
 
     def process_frame(self, frame):
         aruco_corners, aruco_ids = self.detect_aruco_tags(frame)
+        # Draw detected ArUCo markers on the frame
         if aruco_ids is not None:
             frame = cv2.aruco.drawDetectedMarkers(frame.copy(), aruco_corners, aruco_ids)
+            # Draw workspace area by connecting the centers of the 4 tag corners (in order: 0,1,3,2)
+            id_list = aruco_ids.flatten().tolist()
+            centers = [None]*4
+            for idx, aruco_id in enumerate(id_list):
+                if aruco_id in self.aruco_order:
+                    # Center of each tag
+                    centers[self.aruco_order.index(aruco_id)] = np.mean(aruco_corners[idx][0], axis=0)
+            if all(c is not None for c in centers):
+                # Order: 0 (TL), 1 (TR), 3 (BR), 2 (BL), then back to 0
+                polygon = np.array([centers[0], centers[1], centers[3], centers[2]], dtype=np.int32)
+                cv2.polylines(frame, [polygon], isClosed=True, color=(255,0,255), thickness=2)
         objects = self.detect_objects(frame)
         # Draw bounding boxes and normalized field annotation
         for obj in objects:
@@ -80,10 +100,14 @@ class YOLOPoseHomography:
             cv2.circle(frame, (cx, cy), 4, (0,0,255), -1)
             label = obj['label']
             conf = obj['confidence']
-            cv2.putText(frame, f'{label} {conf:.2f}', (x_min, y_min-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
             if obj['center_norm']:
                 norm_x, norm_y = obj['center_norm']
-                cv2.putText(frame, f'Norm: ({norm_x:.2f},{norm_y:.2f})', (x_min, y_min-30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+                # Merge label, confidence, and normalized (x, y) into one line
+                text = f'{label} {conf:.2f} ({norm_x:.2f},{norm_y:.2f})'
+            else:
+                text = f'{label} {conf:.2f}'
+            # Draw single annotation, smaller font size
+            cv2.putText(frame, text, (x_min, y_min-8), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0,255,0), 1)
         return frame, objects
 
     def preview(self, camera_id=0):
@@ -102,4 +126,4 @@ class YOLOPoseHomography:
 
 if __name__ == "__main__":
     detector = YOLOPoseHomography(yolo_model_path="yolo11m.pt")
-    detector.preview(camera_id=1)
+    detector.preview(camera_id=0)
