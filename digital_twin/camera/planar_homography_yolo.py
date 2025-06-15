@@ -20,24 +20,28 @@ class YOLOPoseHomography:
     def detect_aruco_tags(self, frame):
         undistorted = cv2.undistort(frame, self.camera_matrix, self.dist_coeffs)
         corners, ids, _ = self.aruco_detector.detectMarkers(undistorted)
+        image_coords = [None]*4
         if ids is not None and len(ids) >= 4:
-            # Sort corners by id order (0,1,2,3)
             id_list = ids.flatten().tolist()
-            image_coords = [None]*4
             for idx, aruco_id in enumerate(id_list):
                 if aruco_id in self.aruco_order:
                     image_coords[self.aruco_order.index(aruco_id)] = np.mean(corners[idx][0], axis=0)
             if all(c is not None for c in image_coords):
                 image_coords = np.array(image_coords, dtype=np.float32)
-                # Normalized field: (0,0), (1,0), (0,1), (1,1)
-                world_coords = np.array([[0,0],[1,0],[0,1],[1,1]], dtype=np.float32)
+                world_coords = np.array([[0,0],[1,0],[1,1],[0,1]], dtype=np.float32)
                 self.homography_matrix, _ = cv2.findHomography(image_coords, world_coords)
+                self.last_workspace_img_poly = image_coords.astype(np.int32)
+            else:
+                self.homography_matrix = None
+                self.last_workspace_img_poly = None
+        else:
+            self.homography_matrix = None
+            self.last_workspace_img_poly = None
         return corners, ids
 
     def detect_objects(self, frame):
         results = self.model.predict(frame)
         objects = []
-        # Get the current workspace polygon in image coordinates
         workspace_poly_img = getattr(self, 'last_workspace_img_poly', None)
         if len(results) > 0:
             result = results[0]
@@ -45,14 +49,7 @@ class YOLOPoseHomography:
                 x_min, y_min, x_max, y_max = box[:4]
                 x_center = (x_min + x_max) / 2
                 y_center = (y_min + y_max) / 2
-                inside_workspace = True
-                if workspace_poly_img is not None:
-                    # Check if the center is inside the workspace polygon in image coordinates
-                    if cv2.pointPolygonTest(workspace_poly_img, (x_center, y_center), False) < 0:
-                        inside_workspace = False
-                else:
-                    inside_workspace = False
-                if not inside_workspace:
+                if workspace_poly_img is None or cv2.pointPolygonTest(workspace_poly_img, (x_center, y_center), False) < 0:
                     continue
                 norm_x, norm_y = None, None
                 if self.homography_matrix is not None:
@@ -73,9 +70,7 @@ class YOLOPoseHomography:
 
     def process_frame(self, frame):
         aruco_corners, aruco_ids = self.detect_aruco_tags(frame)
-        # Draw detected ArUCo markers on the frame
-        warped = None
-        M = None
+        warped, M = None, None
         if aruco_ids is not None:
             frame = cv2.aruco.drawDetectedMarkers(frame.copy(), aruco_corners, aruco_ids)
             id_list = aruco_ids.flatten().tolist()
@@ -84,19 +79,16 @@ class YOLOPoseHomography:
                 if aruco_id in self.aruco_order:
                     centers[self.aruco_order.index(aruco_id)] = np.mean(aruco_corners[idx][0], axis=0)
             if all(c is not None for c in centers):
-                polygon = np.array([centers[0], centers[1], centers[2], centers[3]], dtype=np.int32)
+                polygon = np.array(centers, dtype=np.int32)
                 cv2.polylines(frame, [polygon], isClosed=True, color=(255,0,255), thickness=2)
-                self.last_workspace_img_poly = polygon
-                # Perspective transform: warp the workspace to a top-down view for visualization
                 dst_pts = np.array([[0,0],[300,0],[300,300],[0,300]], dtype=np.float32)
-                src_pts = np.array([centers[0], centers[1], centers[2], centers[3]], dtype=np.float32)
+                src_pts = np.array(centers, dtype=np.float32)
                 if src_pts.shape == (4,2):
                     M = cv2.getPerspectiveTransform(src_pts, dst_pts)
                     warped = cv2.warpPerspective(frame, M, (300,300))
         else:
             self.last_workspace_img_poly = None
         objects = self.detect_objects(frame)
-        # Draw bounding boxes and normalized field annotation
         for obj in objects:
             x_min, y_min, x_max, y_max = map(int, obj['bbox'])
             cx, cy = map(int, obj['center_px'])
@@ -110,14 +102,13 @@ class YOLOPoseHomography:
                 real_x = norm_x * self.field_size[0]
                 real_y = norm_y * self.field_size[1]
                 text1 = f'{label} {conf:.2f}'
-                text2 = f'({real_x:.1f}, {real_y:.1f} mm)'
+                text2 = f'({real_x:.1f}, {real_y:.1f})'
             else:
                 text1 = f'{label} {conf:.2f}'
                 text2 = ''
             cv2.putText(frame, text1, (x_min, y_min-25), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255,0,0), 1)
             cv2.putText(frame, text2, (x_min, y_min-5), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (255,0,0), 1)
-            # Draw object center on top-down view if available
-            if 'M' in locals() and warped is not None:
+            if M is not None and warped is not None:
                 pt = np.array([[[cx, cy]]], dtype=np.float32)
                 warped_pt = cv2.perspectiveTransform(pt, M)[0][0]
                 wx, wy = int(warped_pt[0]), int(warped_pt[1])
