@@ -20,8 +20,7 @@ runs/
 
 # Testing
 *2*.py
-*testing*
-# testing/
+testing/*
 
 # Install Artifacts
 condaenv.*
@@ -30,6 +29,7 @@ condaenv.*
 .vscode/
 
 # Other
-*.log
-# *.stl
-# *.dae
+**/*log.txt
+**/*.log
+# **/*.stl
+# **/*.dae
