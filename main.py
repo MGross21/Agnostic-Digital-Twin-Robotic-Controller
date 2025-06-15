@@ -4,6 +4,7 @@ from digital_twin.camera.planar_homography_yolo import YOLOPoseHomography
 from pathlib import Path
 import cv2
 import numpy as np
+import threading
 
 ### Object Z HEIGHTS ###
 TABLE_Z = 150  # mm
@@ -14,6 +15,8 @@ HOVER_Z = 300  # mm
 ROBOT_OFFSET_X = -165  # mm
 ROBOT_OFFSET_Y = 520.7  # mm
 
+ROBOT_TCP_Rxyz = [-180,0,0]
+
 # URDF and Mesh Paths
 URDF_DIR = (Path(__file__).resolve().parent / "digital_twin" / "sim" / "model" / "static" / "ElephantRobotics" / "mycobot_pro600").resolve()
 URDF = str((URDF_DIR / "mycobot_pro600.urdf").resolve())
@@ -23,11 +26,11 @@ def main():
     detector = YOLOPoseHomography()
     with (
         Pro600() as robot,
-        mjtb.Simulation(URDF, meshdir=URDF_MESH_DIR) as digital_twin,
+        mjtb.Simulation(URDF, meshdir=URDF_MESH_DIR,controller=mjtb.real_time,initial_conditions={"qpos": robot.HOME_POSITION}) as sim,
     ):
-        digital_twin.gravity = [0, 0, 0]  # Disable gravity for digital twin
-        digital_twin.qpos0 = np.array(robot.HOME_POSITION) # Initialize digital twin position
-        digital_twin.launch(show_menu=False)
+        robot.home()
+        sim.gravity = [0, 0, 0]  # Disable gravity for digital twin
+        sim.launch(show_menu=False)
         
         cap = cv2.VideoCapture(0)
         last_target = None
@@ -43,15 +46,21 @@ def main():
                 cup_obj = next((obj for obj in objects if obj['label'].lower().startswith('cup') and obj['center_norm']), None)
                 if cup_obj:
                     norm_x, norm_y = cup_obj['center_norm']
-                    real_x = norm_x * detector.field_size[0] + ROBOT_OFFSET_X
-                    real_y = norm_y * detector.field_size[1] + ROBOT_OFFSET_Y
+                    # Adjust coordinate mapping for camera-controlled coordinate system
+                    real_x = norm_y * detector.field_size[1] + ROBOT_OFFSET_X  # Camera Y -> Robot X
+                    real_y = -norm_x * detector.field_size[0] + ROBOT_OFFSET_Y  # Camera -X -> Robot Y
                     target = (real_x, real_y)
                     # Only move if target changed
                     if last_target != target:
                         print(f"Cup detected at (x={real_x:.1f} mm, y={real_y:.1f} mm). Moving robot and digital twin.")
 
-                        robot.move_cartesian(robot_pose=[real_x, real_y, HOVER_Z, 0, 0, 0], speed=500)
-                        digital_twin.qpos = np.array(robot.get_joint_positions())
+                        try:
+                            robot.move_cartesian([real_x, real_y, HOVER_Z, *ROBOT_TCP_Rxyz], speed=750)
+                        except AssertionError as e:
+                            print(f"Error moving robot: {e}")
+
+                        # Update digital twin after starting robot movement
+                        sim.controller(sim.model, sim.data, {"qpos": robot.get_joint_positions()})
 
                         last_target = target
                 cv2.imshow('Digital Twin', processed_frame)
