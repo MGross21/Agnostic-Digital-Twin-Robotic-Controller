@@ -1,36 +1,39 @@
 <?xml version="1.0"?>
-<robot  xmlns:xacro="http://www.ros.org/wiki/xacro" name="mycobotpro600" >
+<robot name="Elephant Robotics myCobot pro600" >
 	
-<xacro:property name="width" value=".2" />
-
-
   <link name="base">
-    <visual>
+    <visual name="base">
       <geometry>
 	     <!--- 0.0 0 -0.04  1.5708 3.14159-->
-       <mesh filename="meshes/base.stl"/>
+       <mesh filename="base.stl"/>
       </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
     <origin xyz = "0 0 0 " rpy = " 0 0 0"/>
     </visual>
-    <collision>
+    <collision name="base">
     <geometry>
 	     <!--- 0.0 0 -0.04  1.5708 3.14159-->
-       <mesh filename="meshes/base.stl"/>
+       <mesh filename="base.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 0 0"/>
     </collision>
   </link>
 
   <link name="link1">
-    <visual>
+    <visual name="link1">
       <geometry>
-       <mesh filename="meshes/link1.stl"/>
+       <mesh filename="link1.stl"/>
       </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
     <origin xyz = "0 0 0 " rpy = "0 0 3.1415926"/>
     </visual>
-     <collision>
+     <collision name="link1">
       <geometry>
-       <mesh filename="meshes/link1.stl"/>
+       <mesh filename="link1.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 0 3.1415926"/>
     </collision>
@@ -38,15 +41,18 @@
 
 
   <link name="link2">
-    <visual>
+    <visual name="link2">
       <geometry>
-       <mesh filename="meshes/link2.stl"/>
+       <mesh filename="link2.stl"/>
       </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
     <origin xyz = "0 0 -0.080 " rpy = " 3.1415926 0 3.1415926"/>
     </visual>
-     <collision>
+     <collision name="link2">
      <geometry>
-       <mesh filename="meshes/link2.stl"/>
+       <mesh filename="link2.stl"/>
       </geometry>
     <origin xyz = "0 0 -0.080 " rpy = " 3.1415926 0 3.1415926"/>
     </collision>
@@ -54,17 +60,20 @@
 
 
   <link name="link3">
-    <visual>
+    <visual name="link3">
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link3.stl"/>
+       <mesh filename="link3.stl"/>
       </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
     <origin xyz = "0 0 -0.0855 " rpy = " 3.1415926 0 3.1415926"/>
     </visual>
-     <collision>
+     <collision name="link3">
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link3.stl"/>
+       <mesh filename="link3.stl"/>
       </geometry>
     <origin xyz = "0 0 -0.0855 " rpy = "3.1415926 0 3.1415926"/>
     </collision>
@@ -73,17 +82,20 @@
 
 
 <link name="link4">
-    <visual>
+    <visual name="link4">
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link4.stl"/>
+       <mesh filename="link4.stl"/>
       </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
     <origin xyz = "0 0 0 " rpy = " 0 3.1415926 0"/>
     </visual>
-     <collision>
+     <collision name="link4">
      <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link4.stl"/>
+       <mesh filename="link4.stl"/>
       </geometry>
     <origin xyz = "0 0 0 " rpy = " 0 3.1415926 0"/>
     </collision>
@@ -91,37 +103,40 @@
 
 
   <link name="link5">
-    <visual>
+    <visual name="link5">
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link5.stl"/>
+       <mesh filename="link5.stl"/>
       </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
     <origin xyz = "0 0  0 " rpy = " 0  0 1.5707"/>
     </visual>
-     <collision>
+     <collision name="link5">
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link5.stl"/>
+       <mesh filename="link5.stl"/>
       </geometry>
     <origin xyz = "0 0  0 " rpy = " 0  0 1.5707"/>
     </collision>
   </link>
 
   <link name="link6">
-    <visual>
+    <visual name="link6">
       <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link6.stl"/>
+       <mesh filename="link6.stl"/>
       </geometry>
-      <material name = "grey">
-        <color rgba = "0.5 0.5 0.5 1"/>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
       </material>
     <origin xyz = "0.03 0 0" rpy = " 0 -1.5707  0"/>
     </visual>
-     <collision>
+     <collision name="link6">
      <geometry>
        <!--- 0.0 0 -0.04 -->
-       <mesh filename="meshes/link6.stl"/>
+       <mesh filename="link6.stl"/>
       </geometry>
       <material name = "grey">
         <color rgba = "0.5 0.5 0.5 1"/>
