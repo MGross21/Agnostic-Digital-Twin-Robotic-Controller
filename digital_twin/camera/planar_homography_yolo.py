@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
 from ultralytics import YOLO
+import warnings
 
 IN_TO_MM = 25.4
 
 class YOLOPoseHomography:
-    def __init__(self, yolo_model_path="yolo11m.pt", aruco_dict_type=cv2.aruco.DICT_4X4_50, camera_matrix=None, dist_coeffs=None):
+    def __init__(self, yolo_model_path: str = "yolo11m.pt", aruco_dict_type: int = cv2.aruco.DICT_4X4_50, camera_matrix: np.ndarray = None, dist_coeffs: np.ndarray = None, field_size: tuple[float, float] = (41 * IN_TO_MM, 26 * IN_TO_MM)):
         self.model = YOLO(yolo_model_path)
         # Suppress Ultralytics/YOLO printouts
         if hasattr(self.model, 'overrides'):
@@ -20,7 +21,7 @@ class YOLOPoseHomography:
         self.homography_matrix = None
         self.aruco_order = [0, 1, 2, 3]  # 0: TL, 1: TR, 2: BR, 3: BL
 
-        self.field_size = (41*IN_TO_MM, 26*IN_TO_MM)  # (width mm, height mm)
+        self.field_size = field_size  # (width mm, height mm)
 
     def detect_aruco_tags(self, frame):
         undistorted = cv2.undistort(frame, self.camera_matrix, self.dist_coeffs)
@@ -39,9 +40,11 @@ class YOLOPoseHomography:
             else:
                 self.homography_matrix = None
                 self.last_workspace_img_poly = None
+                warnings.warn("Not all required ArUco tags (0,1,2,3) detected for workspace homography.")
         else:
             self.homography_matrix = None
             self.last_workspace_img_poly = None
+            warnings.warn("Fewer than 4 ArUco tags detected for workspace homography.")
         return corners, ids
 
     def detect_objects(self, frame):
