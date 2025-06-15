@@ -1,6 +1,8 @@
 <mujoco model="myCobot_pro600">
   <compiler meshdir="meshes" angle="radian" coordinate="local"/>
 
+  <option integrator="implicitfast"/>
+
   <asset>
     <mesh name="base" file="base.stl" scale="0.001 0.001 0.001"/>
     <mesh name="link1" file="link1.stl" scale="0.001 0.001 0.001"/>
@@ -16,27 +18,27 @@
       <geom type="mesh" mesh="base" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
 
       <body name="link1" pos="0 0 0.19934">
-        <joint name="joint2_to_joint1" type="hinge" axis="0 0 1" range="-3.14 3.14159" damping="0.1"/>
+        <joint name="joint2_to_joint1" type="hinge" axis="0 0 1" range="-3.14 3.14159" damping="1.0"/>
         <geom type="mesh" mesh="link1" euler="0 0 3.1415926" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
 
         <body name="link2" pos="0 0 0" euler="1.5708 0 0">
-          <joint name="joint3_to_joint2" type="hinge" axis="0 0 -1" range="-3.14159 3.14159" damping="0.1"/>
+          <joint name="joint3_to_joint2" type="hinge" axis="0 0 -1" range="-3.14159 3.14159" damping="1.0"/>
           <geom type="mesh" mesh="link2" pos="0 0 -0.080" euler="3.1415926 0 3.1415926" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
 
           <body name="link3" pos="0.25 0 0">
-            <joint name="joint4_to_joint3" type="hinge" axis="0 0 -1" range="-2.61 2.618" damping="0.1"/>
+            <joint name="joint4_to_joint3" type="hinge" axis="0 0 -1" range="-2.61 2.618" damping="1.0"/>
             <geom type="mesh" mesh="link3" pos="0 0 -0.0855" euler="3.1415926 0 3.1415926" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
 
             <body name="link4" pos="0.25 0 -0.1091" euler="0 0 0">
-              <joint name="joint5_to_joint4" type="hinge" axis="0 0 -1" range="-2.967 2.967" damping="0.1"/>
+              <joint name="joint5_to_joint4" type="hinge" axis="0 0 -1" range="-2.967 2.967" damping="2.0"/>
               <geom type="mesh" mesh="link4" euler="0 3.1415926 0" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
 
               <body name="link5" pos="0 -0.108 0" euler="0 0 1.5708">
-                <joint name="joint6_to_joint5" type="hinge" axis="0 0 1" range="-2.93 2.9321" damping="0.1"/>
+                <joint name="joint6_to_joint5" type="hinge" axis="0 0 1" range="-2.93 2.9321" damping="1.0"/>
                 <geom type="mesh" mesh="link5" euler="0 -1.5708 1.5708" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
 
                 <body name="link6" pos="0 0 -0.05">
-                  <joint name="joint6output_to_joint6" type="hinge" axis="-1 0 0" range="-3.03 3.0368" damping="0.1"/>
+                  <joint name="joint6output_to_joint6" type="hinge" axis="-1 0 0" range="-3.03 3.0368" damping="1.0"/>
                   <geom type="mesh" mesh="link6" euler="0 3.14 0" rgba="1 1 1 1" contype="1" conaffinity="1" friction="0.8 0.1 0.1"/>
                 </body>
 
@@ -47,4 +49,17 @@
       </body>
     </body>
   </worldbody>
+
+  <actuator>
+    <general name="act1" joint="joint2_to_joint1"/>
+    <general name="act2" joint="joint3_to_joint2"/>
+    <general name="act3" joint="joint4_to_joint3"/>
+    <general name="act4" joint="joint5_to_joint4"/>
+    <general name="act5" joint="joint6_to_joint5"/>
+    <general name="act6" joint="joint6output_to_joint6"/>
+  </actuator>
+
+  <keyframe>
+    <key name="home" qpos="0 -1.5708 1.5708 -1.5708 -1.5708 0"/>
+  </keyframe>
 </mujoco>

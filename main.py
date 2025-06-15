@@ -17,16 +17,14 @@ ROBOT_OFFSET_Y = 520.7  # mm
 
 ROBOT_TCP_Rxyz = [-180,0,0]
 
-# URDF and Mesh Paths
-URDF_DIR = (Path(__file__).resolve().parent / "digital_twin" / "sim" / "model" / "static" / "ElephantRobotics" / "mycobot_pro600").resolve()
-URDF = str((URDF_DIR / "mycobot_pro600.urdf").resolve())
-URDF_MESH_DIR = str((URDF_DIR / "meshes").resolve())
+### MJCF MODEL PATH ###
+MODEL_UR5_VENTION = (Path(__file__).resolve().parent / "digital_twin" / "sim" / "model" / "static" / "ur5e_vention.xml").resolve()
 
 def main():
     detector = YOLOPoseHomography()
     with (
-        Pro600() as robot,
-        mjtb.Simulation(URDF, meshdir=URDF_MESH_DIR,controller=mjtb.real_time,initial_conditions={"qpos": robot.HOME_POSITION}) as sim,
+        UR5() as robot,
+        mjtb.Simulation(MODEL_UR5_VENTION,controller=mjtb.real_time, initial_conditions={"qpos": robot.HOME_POSITION}) as sim,
     ):
         robot.home()
         sim.gravity = [0, 0, 0]  # Disable gravity for digital twin
