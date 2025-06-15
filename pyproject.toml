@@ -31,6 +31,7 @@ pyrealsense2 = "*" # Intel RealSense SDK for depth camera
 # Add editable local dependencies using Poetry path dependencies
 mujoco-toolbox = { path = "digital_twin/mujoco_toolbox", develop = true }
 armctl = { path = "digital_twin/armctl", develop = true }
+imageio = "^2.37.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
