@@ -5,7 +5,7 @@ import cv2
 
 def main():
     pub = LocalPubSub()
-    detector = YOLOPoseHomography(yolo_model_path="yolo11m.pt")
+    detector = YOLOPoseHomography()
     cap = cv2.VideoCapture(1)
     try:
         while cap.isOpened():
