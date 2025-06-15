@@ -5,8 +5,13 @@ from ultralytics import YOLO
 IN_TO_MM = 25.4
 
 class YOLOPoseHomography:
-    def __init__(self, yolo_model_path, aruco_dict_type=cv2.aruco.DICT_4X4_50, camera_matrix=None, dist_coeffs=None):
+    def __init__(self, yolo_model_path="yolo11m.pt", aruco_dict_type=cv2.aruco.DICT_4X4_50, camera_matrix=None, dist_coeffs=None):
         self.model = YOLO(yolo_model_path)
+        # Suppress Ultralytics/YOLO printouts
+        if hasattr(self.model, 'overrides'):
+            self.model.overrides['verbose'] = False
+            self.model.overrides['show'] = False
+            self.model.overrides['save'] = False
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
         self.aruco_params = cv2.aruco.DetectorParameters()
         self.aruco_detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
