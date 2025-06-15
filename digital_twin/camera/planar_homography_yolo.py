@@ -11,7 +11,7 @@ class YOLOPoseHomography:
         self.camera_matrix = camera_matrix if camera_matrix is not None else np.array([[1200, 0, 640], [0, 1200, 360], [0, 0, 1]])
         self.dist_coeffs = dist_coeffs if dist_coeffs is not None else np.zeros(5)
         self.homography_matrix = None
-        self.aruco_order = [0, 1, 2, 3]  # 0: TL, 1: TR, 2: BL, 3: BR
+        self.aruco_order = [0, 1, 2, 3]  # 0: TL, 1: TR, 2: BR, 3: BL
         self.field_size = (150, 150)  # mm
 
     def detect_aruco_tags(self, frame):
@@ -34,33 +34,28 @@ class YOLOPoseHomography:
     def detect_objects(self, frame):
         results = self.model.predict(frame)
         objects = []
+        # Get the current workspace polygon in image coordinates
+        workspace_poly_img = None
+        if self.homography_matrix is not None and hasattr(self, 'last_workspace_img_poly'):
+            workspace_poly_img = self.last_workspace_img_poly
         if len(results) > 0:
             result = results[0]
             for i, box in enumerate(result.boxes.xyxy.cpu().numpy()):
                 x_min, y_min, x_max, y_max = box[:4]
                 x_center = (x_min + x_max) / 2
                 y_center = (y_min + y_max) / 2
-                norm_x, norm_y = None, None
-                all_inside = True
-                if self.homography_matrix is not None:
-                    # Transform all four corners and center
-                    pts = np.array([
-                        [[x_min, y_min]],
-                        [[x_max, y_min]],
-                        [[x_max, y_max]],
-                        [[x_min, y_max]],
-                        [[x_center, y_center]]
-                    ], dtype=np.float32)
-                    norm_pts = cv2.perspectiveTransform(pts, self.homography_matrix)
-                    # Check all corners and center are within [0,1] x [0,1]
-                    for pt in norm_pts:
-                        nx, ny = pt[0]
-                        if not (0 <= nx <= 1 and 0 <= ny <= 1):
-                            all_inside = False
-                            break
-                    norm_x, norm_y = norm_pts[-1][0]
-                if not all_inside:
+                inside_polygon = True
+                if workspace_poly_img is not None:
+                    # Check if the center is inside the workspace polygon in image coordinates
+                    if cv2.pointPolygonTest(workspace_poly_img, (x_center, y_center), False) < 0:
+                        inside_polygon = False
+                if not inside_polygon:
                     continue
+                norm_x, norm_y = None, None
+                if self.homography_matrix is not None:
+                    center_pt = np.array([[[x_center, y_center]]], dtype=np.float32)
+                    norm_center = cv2.perspectiveTransform(center_pt, self.homography_matrix)[0][0]
+                    norm_x, norm_y = norm_center
                 label = result.names[int(result.boxes.cls[i].cpu().numpy())]
                 conf = float(result.boxes.conf[i].cpu().numpy())
                 obj = {
@@ -69,8 +64,6 @@ class YOLOPoseHomography:
                     'bbox': [float(x_min), float(y_min), float(x_max), float(y_max)],
                     'center_px': [float(x_center), float(y_center)],
                     'center_norm': [float(norm_x), float(norm_y)] if norm_x is not None else None,
-                    # 'z': None,  # Z estimation not implemented
-                    # 'orientation': None  # Orientation estimation not implemented
                 }
                 objects.append(obj)
         return objects
@@ -80,17 +73,20 @@ class YOLOPoseHomography:
         # Draw detected ArUCo markers on the frame
         if aruco_ids is not None:
             frame = cv2.aruco.drawDetectedMarkers(frame.copy(), aruco_corners, aruco_ids)
-            # Draw workspace area by connecting the centers of the 4 tag corners (in order: 0,1,3,2)
+            # Draw workspace area by connecting the centers of the 4 tag corners (in order: 0,1,2,3, then back to 0)
             id_list = aruco_ids.flatten().tolist()
             centers = [None]*4
             for idx, aruco_id in enumerate(id_list):
                 if aruco_id in self.aruco_order:
-                    # Center of each tag
                     centers[self.aruco_order.index(aruco_id)] = np.mean(aruco_corners[idx][0], axis=0)
             if all(c is not None for c in centers):
-                # Order: 0 (TL), 1 (TR), 3 (BR), 2 (BL), then back to 0
-                polygon = np.array([centers[0], centers[1], centers[3], centers[2]], dtype=np.int32)
+                # Order: 0 (TL), 1 (TR), 2 (BR), 3 (BL), then back to 0
+                polygon = np.array([centers[0], centers[1], centers[2], centers[3]], dtype=np.int32)
                 cv2.polylines(frame, [polygon], isClosed=True, color=(255,0,255), thickness=2)
+                # Store polygon for filtering detections
+                self.last_workspace_img_poly = polygon
+        else:
+            self.last_workspace_img_poly = None
         objects = self.detect_objects(frame)
         # Draw bounding boxes and normalized field annotation
         for obj in objects:
