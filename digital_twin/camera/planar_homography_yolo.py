@@ -41,10 +41,13 @@ class YOLOPoseHomography:
                 self.homography_matrix = None
                 self.last_workspace_img_poly = None
                 warnings.warn("Not all required ArUco tags (0,1,2,3) detected for workspace homography.")
-        else:
+        elif ids is not None and len(ids) > 0:
             self.homography_matrix = None
             self.last_workspace_img_poly = None
             warnings.warn("Fewer than 4 ArUco tags detected for workspace homography.")
+        else:
+            self.homography_matrix = None
+            self.last_workspace_img_poly = None
         return corners, ids
 
     def detect_objects(self, frame):
