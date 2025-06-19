@@ -26,29 +26,36 @@ poetry install
 ## Core Structure of Digital Twin
 
 ```mermaid
-graph TD
+flowchart TD
     Camera["Camera
-+captureImage()
-+detectObjectPose()"]
+• Image Capture"] --> Computer["Computer
+• Object Pose Detection"]
+    Computer --> Controller["Controller [armctl]
+• Send Commands
+• Robot Status"]
+    Controller --> Computer
+    Computer --> Simulation["Simulation [mujoco-toolbox]
+• Robot Update
+• Environment Update"]
+    Simulation --> Computer
 
-    Computer["Computer
-+processCameraData()"]
-
-    Controller["Controller [armctl]
-+sendCommands()
-+receiveStatus()"]
-
-    Simulation["Simulation [mujoco-toolbox]
-+updateRobot()
-+updateEnvironment()"]
-
-    Camera -->|/camera/object_pose| Computer
-    Computer -->|/controller/command| Controller
-    Controller -->|/controller/status| Computer
-    Computer -->|/sim/update| Simulation
-    Simulation -->|/sim/state| Computer
+    style Camera stroke:#000000
+    style Computer stroke:#000000
+    style Controller stroke:#000000
+    style Simulation stroke:#000000
 ```
 
 ## Visual Representation
 
 ![Glovebox UR5 Vention](assets/images/glovebox_ur5_vention.png)
+
+## Physical Implementation
+
+| **View**          | **Before**                                      | **After**                                       |
+|--------------------|------------------------------------------------|------------------------------------------------|
+| **Regular Camera** | ![Init Camera](assets/images/final_testing/cup_init_camera.png) | ![Final Camera](assets/images/final_testing/cup_final_camera.png) |
+| **Flat**           | ![Init Flat](assets/images/final_testing/cup_init_flat.png)     | ![Final Flat](assets/images/final_testing/cup_final_flat.png)     |
+
+### Cup Location Tracking
+
+![Cup Tracker](assets/figures/final_testing/ur5_cup_drag.gif)
