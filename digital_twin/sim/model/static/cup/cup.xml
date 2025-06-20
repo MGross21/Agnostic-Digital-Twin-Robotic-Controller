@@ -1,0 +1,15 @@
+<mujoco model="cup">
+    <asset>
+        <mesh name="cup_mesh" file="../../../cup/cup.stl" /> <!--Relative path to UR5e meshes folder location-->
+    </asset>
+
+    <worldbody>
+        <body name="cup" pos="0 0 0.05">
+            <geom name="cup_geom"
+                  type="mesh"
+                  mesh="cup_mesh"
+                  rgba="1 0.5 0.5 1"
+                  mass="0.2" />
+        </body>
+    </worldbody>
+</mujoco>
