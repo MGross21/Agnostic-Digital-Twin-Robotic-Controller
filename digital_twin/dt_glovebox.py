@@ -1,8 +1,10 @@
 import time
+
+import mujoco
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import *
 from armctl import *
-from communication.localpubsub import LocalPubSub
+# from communication.localpubsub import LocalPubSub
 from pathlib import Path
 import math
 import numpy as np
@@ -13,52 +15,66 @@ ur_vention_model = model_dir / "ur5e_vention.xml"
 cup_model = str(model_dir / "cup" / "cup.xml")
 meshes_dir = model_dir / "UniversalRobotics" / "UR5e" / "meshes"
 
-ur5e_vention = {
-    "mjcf": (ur_vention_model.read_text()).format(meshdir=meshes_dir.as_posix()),
-    "ur_controller": UR5e(),
-    "vention_controller": Vention()
-}
+ur5e_vention = ur_vention_model.read_text().format(meshdir=meshes_dir.as_posix())
 
+# Constants
+INTERPOLATION_STEPS = 1000
+SLEEP_DELAY = 0.01
 IN_TO_M = 0.0254
-
-SIM_HOME = [90, -90, 90, -90, -90, 0]  # UR5 sim home position in degrees
-
-LOCATIONS_DEGREES = [
-    [90 - SIM_HOME[0], -90 - SIM_HOME[1], 90 - SIM_HOME[2], -90 - SIM_HOME[3], -90 - SIM_HOME[4], 0 - SIM_HOME[5]],  # Home position
-    [84 - SIM_HOME[0], -45 - SIM_HOME[1], 53 - SIM_HOME[2], -100 - SIM_HOME[3], -87 - SIM_HOME[4], -12 - SIM_HOME[5]],  # Over Cup
-    [85 - SIM_HOME[0], -35 - SIM_HOME[1], 55 - SIM_HOME[2], -108 - SIM_HOME[3], -87 - SIM_HOME[4], -12 - SIM_HOME[5]],  # In cup
-    [106 - SIM_HOME[0], -79 - SIM_HOME[1], 129 - SIM_HOME[2], -140 - SIM_HOME[3], -87 - SIM_HOME[4], 9 - SIM_HOME[5]],  # In, Move cup
-    [100 - SIM_HOME[0], -79 - SIM_HOME[1], 129 - SIM_HOME[2], -140 - SIM_HOME[3], -87 - SIM_HOME[4], 9 - SIM_HOME[5]],  # Adjust cup
-    [106 - SIM_HOME[0], -90 - SIM_HOME[1], 123 - SIM_HOME[2], -123 - SIM_HOME[3], -87 - SIM_HOME[4], 9 - SIM_HOME[5]],  # Over Cup
-    [90 - SIM_HOME[0], -90 - SIM_HOME[1], 90 - SIM_HOME[2], -90 - SIM_HOME[3], -90 - SIM_HOME[4], 0 - SIM_HOME[5]],  # Home position
-]
-
-# Convert to radians and generate interpolated positions
-def generate_interpolated_positions(locations_degrees, steps=1000):
-    locations_radians = np.radians(locations_degrees)
-    interpolated = []
-    for start, end in zip(locations_radians[:-1], locations_radians[1:]):
-        interpolated.extend((1 - t) * start + t * end for t in np.linspace(0, 1, steps))
-    return interpolated
-
-INTERPOLATED_LOCATIONS = generate_interpolated_positions(LOCATIONS_DEGREES)
-
+SH = [90, -90, 90, -90, -90, 0]  # UR5 sim home position in degrees (SH=Sim Home)
+STATIC_CUP_Z = 0.05  # Static cup height in meters
 
 # Glovebox dimensions
 GB_WIDTH = 75*IN_TO_M
 GB_DEPTH = 60*IN_TO_M
 GB_HEIGHT = 40*IN_TO_M
+GB = glovebox(width=GB_WIDTH, height=GB_HEIGHT, depth=GB_DEPTH, pos_x=0.5, pos_y=-0.4)
 
-gb = glovebox(width=GB_WIDTH, height=GB_HEIGHT, depth=GB_DEPTH, pos_x=0.5, pos_y=-0.4)
-build = Builder(ur5e_vention["mjcf"], cup_model, gb, WORLD_ASSETS)
+LOCATIONS_DEGREES = [
+    [90 - SH[0], -90 - SH[1], 90 - SH[2], -90 - SH[3], -90 - SH[4], 0 - SH[5]],  # Home position
+    [84 - SH[0], -45 - SH[1], 53 - SH[2], -100 - SH[3], -87 - SH[4], -12 - SH[5]],  # Over Cup
+    [85 - SH[0], -35 - SH[1], 55 - SH[2], -108 - SH[3], -87 - SH[4], -12 - SH[5]],  # In cup
+    [106 - SH[0], -79 - SH[1], 129 - SH[2], -140 - SH[3], -87 - SH[4], 9 - SH[5]],  # In, Move cup
+    [100 - SH[0], -79 - SH[1], 129 - SH[2], -140 - SH[3], -87 - SH[4], 9 - SH[5]],  # Adjust cup
+    [106 - SH[0], -90 - SH[1], 123 - SH[2], -123 - SH[3], -87 - SH[4], 9 - SH[5]],  # Over Cup
+    [90 - SH[0], -90 - SH[1], 90 - SH[2], -90 - SH[3], -90 - SH[4], 0 - SH[5]],  # Home position
+]
 
+# Helper function for generating interpolated positions
+def generate_interpolated_positions(locations_degrees, steps=INTERPOLATION_STEPS):
+    """Generate interpolated positions between waypoints."""
+    locations_radians = np.radians(locations_degrees)
+    for start, end in zip(locations_radians[:-1], locations_radians[1:]):
+        yield from ((1 - t) * start + t * end for t in np.linspace(0, 1, steps))
+
+b_id = lambda model, name: mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, name)
+
+# Main simulation logic
+BUILD = Builder(ur5e_vention, cup_model, GB, WORLD_ASSETS)
 with (
-    mjtb.Simulation(build, controller=real_time, clear_screen=False) as sim,
-    # LocalPubSub(port=5_000) as sub
+    mjtb.Simulation(BUILD, controller=real_time, clear_screen=False) as sim,
 ):
-    sim._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions (vention, UR5e)
+    sim._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
     sim.launch(show_menu=False)
-    sim.gravity = [0,0,0]
-    for location in INTERPOLATED_LOCATIONS:
-        sim.controller(sim.model, sim.data, {"qpos":[-0.5] + list(location),"qvel":[0]*7})  # Set controller
-        time.sleep(0.01)  # Sleep to simulate smoother delay between movements
+    sim.gravity = [0, 0, 0]
+
+    for move_id, location in enumerate(generate_interpolated_positions(LOCATIONS_DEGREES)):
+        phase_idx = ((move_id) // INTERPOLATION_STEPS) + 1  # Calculate phase index based on move_id
+        sim.controller(sim.model, sim.data, {"qpos": [-0.5] + list(location), "qvel": [0] * 7})
+
+        #  if phase_idx == 4 else None
+        # set_cup_position(sim, move_id, wrist_pos)
+        if phase_idx in {1}:  # Home position
+            pos = [0.5, -0.75, STATIC_CUP_Z]
+        elif phase_idx in {2, 3, 4, 5}:
+            wrist_pos = sim.data.xpos[b_id(sim.model, 'wrist_3_link')]
+            pos = [wrist_pos[0], wrist_pos[1], STATIC_CUP_Z]
+        elif phase_idx in {6}:  # Adjust the cup position slightly
+            pos = [0.75, -0.3, STATIC_CUP_Z]
+        else:
+            pos = [0, 0, 1]
+
+        sim.model.body_pos[b_id(sim.model, 'cup')] = np.array(pos)
+        # sim.model.body_pos[b_id(sim.model, 'cup')] = list(sim.data.xpos[b_id(sim.model, 'wrist_3_link')]) if phase_idx == 4 else [0.5, -0.5, STATIC_CUP_Z]
+
+        time.sleep(SLEEP_DELAY)
