@@ -1,10 +1,8 @@
 import time
-
 import mujoco
 import mujoco_toolbox as mjtb
 from mujoco_toolbox import *
 from armctl import *
-# from communication.localpubsub import LocalPubSub
 from pathlib import Path
 import math
 import numpy as np
@@ -62,8 +60,6 @@ with (
         phase_idx = ((move_id) // INTERPOLATION_STEPS) + 1  # Calculate phase index based on move_id
         sim.controller(sim.model, sim.data, {"qpos": [-0.5] + list(location), "qvel": [0] * 7})
 
-        #  if phase_idx == 4 else None
-        # set_cup_position(sim, move_id, wrist_pos)
         if phase_idx in {1}:  # Home position
             pos = [0.5, -0.75, STATIC_CUP_Z]
         elif phase_idx in {2, 3, 4, 5}:
@@ -75,6 +71,5 @@ with (
             pos = [0, 0, 1]
 
         sim.model.body_pos[b_id(sim.model, 'cup')] = np.array(pos)
-        # sim.model.body_pos[b_id(sim.model, 'cup')] = list(sim.data.xpos[b_id(sim.model, 'wrist_3_link')]) if phase_idx == 4 else [0.5, -0.5, STATIC_CUP_Z]
 
         time.sleep(SLEEP_DELAY)
