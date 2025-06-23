@@ -47,7 +47,7 @@ flowchart TD
 
 ## Visual Representation
 
-![Glovebox UR5 Vention](assets/images/glovebox_ur5_vention.png)
+![Glovebox UR5 Vention /w Cup](assets/images/ur5_vention_w_cup.png)
 
 ## Physical Implementation
 
