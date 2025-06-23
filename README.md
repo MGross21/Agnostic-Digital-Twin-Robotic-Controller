@@ -64,4 +64,4 @@ flowchart TD
 
 ### Final Demonstration
 
-<video controls width="640" height="180" src="assets/videos/dt_output_compressed.mp4" title="Final Demonstration"></video>
+![Digital Twin Final Demonstration](assets/videos/dt.gif)
