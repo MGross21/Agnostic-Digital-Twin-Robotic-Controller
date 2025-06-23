@@ -64,4 +64,4 @@ flowchart TD
 
 ### Final Demonstration
 
-<video controls src="assets/videos/dt_output_compressed.mp4" title="Final Demonstration"></video>
+<video controls width="640" height="180" src="assets/videos/dt_output_compressed.mp4" title="Final Demonstration"></video>
