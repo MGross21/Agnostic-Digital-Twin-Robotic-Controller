@@ -61,3 +61,7 @@ flowchart TD
 ### Cup Location Tracking
 
 ![Cup Tracker](assets/figures/final_testing/ur5_cup_drag.gif)
+
+### Final Demonstration
+
+<video controls src="assets/videos/dt_output_compressed.mp4" title="Final Demonstration"></video>
