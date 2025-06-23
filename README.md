@@ -55,6 +55,7 @@ flowchart TD
 |--------------------|------------------------------------------------|------------------------------------------------|
 | **Regular Camera** | ![Init Camera](assets/images/final_testing/cup_init_camera.png) | ![Final Camera](assets/images/final_testing/cup_final_camera.png) |
 | **Flat**           | ![Init Flat](assets/images/final_testing/cup_init_flat.png)     | ![Final Flat](assets/images/final_testing/cup_final_flat.png)     |
+| **Sim**            | ![Init Sim](assets/images/final_testing/cup_init_sim.png)       | ![Final Sim](assets/images/final_testing/cup_final_sim.png)       |
 
 ### Cup Location Tracking
 
