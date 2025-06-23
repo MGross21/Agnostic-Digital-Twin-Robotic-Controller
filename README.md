@@ -2,6 +2,8 @@
 
 This project integrates the [mujoco-toolbox](https://github.com/MGross21/mujoco-toolbox) and [armctl](https://github.com/MGross21/armctl) repositories. Developed as part of a master's thesis at Arizona State University.
 
+![Digital Twin Final Demonstration](assets/videos/dt.gif)
+
 ## Installation Instructions
 
 > [!Note]
@@ -61,7 +63,3 @@ flowchart TD
 ### Cup Location Tracking
 
 ![Cup Tracker](assets/figures/final_testing/ur5_cup_drag.gif)
-
-### Final Demonstration
-
-![Digital Twin Final Demonstration](assets/videos/dt.gif)
