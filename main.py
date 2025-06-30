@@ -49,6 +49,9 @@ def main():
     # Initialize last_target to track movement
     last_target = None
 
+    # Desired cup location
+    motion_target = (900, 400)  # mm, relative to the robot's TCP (camera position)
+
     with (
         UR5() as ur5,
         mjtb.Simulation(build, controller=mjtb.real_time, initial_conditions={"qpos": [VENTION_STATIC_POSITION, *ur5.HOME_POSITION]}) as sim,
@@ -80,6 +83,7 @@ def main():
                     target = (real_x, real_y)
 
                     if last_target != target:
+                        motion_target = target
                         print(f"Cup detected at (x={real_x:.1f} mm, y={real_y:.1f} mm). Moving robot and digital twin.")
 
                         try:
