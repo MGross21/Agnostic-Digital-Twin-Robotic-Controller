@@ -29,29 +29,29 @@ poetry install
 
 ```mermaid
 flowchart TD
-    Camera["Camera
-• Image Capture"] --> Computer["Computer
-• Object Pose Detection"]
-    Computer --> Controller["Controller [armctl]
-• Send Commands
-• Robot Status"]
-    Controller --> Computer
-    Computer --> Simulation["Simulation [mujoco-toolbox]
-• Robot Update
-• Environment Update"]
-    Simulation --> Computer
+    Camera -- "Image Capture" --> Computer
 
-    style Camera stroke:#000000
-    style Computer stroke:#000000
-    style Controller stroke:#000000
-    style Simulation stroke:#000000
+    subgraph Computer["Computer"]
+        direction TB
+        Pose["Object Pose Detection & Path Planning"]
+        Controller["Robot Controller [armctl]"]
+        Simulation["Glovebox Simulation [mujoco-toolbox]"]
+    end
+
+    Pose -- "Send Commands" --> Controller
+    Controller -- "State/Status" --> Pose
+
+    Pose -- "Update Robot/Object Pose" --> Simulation
+    Simulation -- "State/Status" --> Pose
+
+    Controller <--"Send/Recieve"--> Robot["Robot"]
 ```
 
-## Visual Representation
+## Simulation Setup
 
 ![Glovebox UR5 Vention /w Cup](assets/images/ur5_vention_w_cup.png)
 
-## Physical Implementation
+## Implementation
 
 | **View**          | **Before**                                      | **After**                                       |
 |--------------------|------------------------------------------------|------------------------------------------------|
