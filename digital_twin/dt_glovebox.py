@@ -6,6 +6,7 @@ from armctl import *
 from pathlib import Path
 import math
 import numpy as np
+import json
 
 
 model_dir = Path(__file__).resolve().parent / "sim" / "model" / "static"
@@ -47,29 +48,38 @@ def generate_interpolated_positions(locations_degrees, steps=INTERPOLATION_STEPS
 
 b_id = lambda model, name: mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, name)
 
+cup_tracker = []
+
 # Main simulation logic
 BUILD = Builder(ur5e_vention, cup_model, GB, WORLD_ASSETS)
-with (
-    mjtb.Simulation(BUILD, controller=real_time, clear_screen=False) as sim,
-):
-    sim._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
-    sim.launch(show_menu=False)
-    sim.gravity = [0, 0, 0]
+try:
+    with (
+        mjtb.Simulation(BUILD, controller=real_time, clear_screen=False) as sim,
+    ):
+        sim._model.qpos0 = [0, 0, math.pi/2, -math.pi/2, math.pi/2, math.pi/2, 0]  # Initial joint positions
+        sim.launch(show_menu=False)
+        sim.gravity = [0, 0, 0]
 
-    for move_id, location in enumerate(generate_interpolated_positions(LOCATIONS_DEGREES)):
-        phase_idx = ((move_id) // INTERPOLATION_STEPS) + 1  # Calculate phase index based on move_id
-        sim.controller(sim.model, sim.data, {"qpos": [-0.5] + list(location), "qvel": [0] * 7})
+        for move_id, location in enumerate(generate_interpolated_positions(LOCATIONS_DEGREES)):
+            phase_idx = ((move_id) // INTERPOLATION_STEPS) + 1  # Calculate phase index based on move_id
+            sim.controller(sim.model, sim.data, {"qpos": [-0.5] + list(location), "qvel": [0] * 7})
 
-        if phase_idx in {1}:  # Home position
-            pos = [0.5, -0.75, STATIC_CUP_Z]
-        elif phase_idx in {2, 3, 4, 5}:
-            wrist_pos = sim.data.xpos[b_id(sim.model, 'wrist_3_link')]
-            pos = [wrist_pos[0], wrist_pos[1], STATIC_CUP_Z]
-        elif phase_idx in {6}:  # Adjust the cup position slightly
-            pos = [0.75, -0.3, STATIC_CUP_Z]
-        else:
-            pos = [0, 0, 1]
+            if phase_idx in {1}:  # Home position
+                pos = [0.5508301313487787, -0.79833108438147, STATIC_CUP_Z]
+            elif phase_idx in {2, 3, 4, 5}:
+                wrist_pos = sim.data.xpos[b_id(sim.model, 'wrist_3_link')]
+                pos = [wrist_pos[0], wrist_pos[1], STATIC_CUP_Z]
+            elif phase_idx in {6}:  # Adjust the cup position slightly
+                pos = [0.7469567224132392, -0.37525749955280036, STATIC_CUP_Z]
+            else:
+                pos = [0, 0, 1]
 
-        sim.model.body_pos[b_id(sim.model, 'cup')] = np.array(pos)
+            sim.model.body_pos[b_id(sim.model, 'cup')] = np.array(pos)
 
-        time.sleep(SLEEP_DELAY)
+            cup_tracker.append(pos.copy())       
+
+            time.sleep(SLEEP_DELAY)
+
+finally:
+    with open("cup_tracker.json", "w") as f:
+        json.dump(cup_tracker, f)
