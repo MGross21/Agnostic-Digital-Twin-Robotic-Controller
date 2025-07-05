@@ -26,7 +26,6 @@ matplotlib = "*"
 scipy = "*" 
 ultralytics = "*" # YOLOv11
 opencv-python = "*" # OpenCV for image processing
-pyrealsense2 = "*" # Intel RealSense SDK for depth camera
 
 # Add editable local dependencies using Poetry path dependencies
 mujoco-toolbox = { path = "digital_twin/mujoco_toolbox", develop = true }
