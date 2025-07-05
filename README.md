@@ -18,6 +18,7 @@ winget install --id=Python.Python.3.11 -e
 ```bash
 git clone https://github.com/MGross21/glovebox-digitaltwin
 cd glovebox-digitaltwin
+git submodule update --init --recursive
 py -3.11 -m venv .venv
 .\.venv\Scripts\activate
 python.exe -m pip install --upgrade pip
