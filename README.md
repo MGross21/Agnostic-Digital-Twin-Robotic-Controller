@@ -9,17 +9,11 @@ This project integrates the [mujoco-toolbox](https://github.com/MGross21/mujoco-
 > [!Note]
 > For non-Windows users, installation steps may vary slightly. Adjust the commands according to your operating system.
 
-Python Version: `3.11`
-
-```bash
-winget install --id=Python.Python.3.11 -e
-```
-
 ```bash
 git clone https://github.com/MGross21/glovebox-digitaltwin
 cd glovebox-digitaltwin
 git submodule update --init --recursive
-py -3.11 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\activate
 python.exe -m pip install --upgrade pip
 pip install poetry
